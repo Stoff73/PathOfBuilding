@@ -1,0 +1,4 @@
+[submodule "macos/SimpleGraphic"]
+	path = macos/SimpleGraphic
+	url = https://github.com/Stoff73/PathOfBuilding-SimpleGraphic.git
+	branch = master

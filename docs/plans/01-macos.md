@@ -64,7 +64,10 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/build.sh` | 1 | Builds the host, the four Lua libraries, LuaJIT, the launcher and the helper into `macos/build/`, and stages the runtime in `macos/runtime/` |
 | `macos/launcher.cpp` | 1, 4 | The Mac launcher |
 | `macos/SimpleGraphic/CMakeLists.txt` | 1 | Builds on macOS: the Unix socket source for luasocket, library names and install rules that work off Windows |
-| `macos/SimpleGraphic/vcpkg.json` | 1 | Asks for ANGLE's Metal backend on macOS |
+| `macos/triplets/x64-osx-pob.cmake` | 1 | The vcpkg triplet: shared libraries, release only |
+| `macos/SimpleGraphic/cmake/FindLuaJIT.cmake` | 1 | Finds LuaJIT under its macOS file names |
+| `macos/SimpleGraphic/vcpkg-ports/ports/luajit/2026-07-20_1/` | 1 | The LuaJIT recipe builds off Windows |
+| `macos/SimpleGraphic/engine/common/`, `engine/render/` | 1 | Portability fixes so the host compiles on macOS |
 | `macos/SimpleGraphic/engine/system/win/sys_video.cpp` | 1, 3 | Chooses the ANGLE backend on macOS; cursor position, display scale and scrolling behave as on Windows |
 | `macos/SimpleGraphic/engine/system/win/sys_macos.mm` | 3 | The macOS system calls: start a process, find the cursor, find Documents, name a cloud provider, show a message window |
 | `macos/SimpleGraphic/engine/system/win/sys_main.cpp` | 3 | Calls those on macOS where it now has a "not implemented" stub; reports Ctrl as held for Option + Left and Option + Right |
@@ -109,12 +112,12 @@ Adds the host fork as a submodule, makes its build work on macOS, writes the lau
 
 Why first: it is the largest unknown. This MacBook is 2014 hardware (Intel Iris Pro) running macOS 15, and whether ANGLE draws correctly on it, and whether the build fits in the free disk space, can only be found by doing it. If it cannot be made to work, the phase stops and goes back to the owner, as `AGENTS.md` requires, before anything else is built.
 
-- [ ] `macos/build.sh` run from a clean checkout finishes and leaves the host library, `lcurl`, `lzip`, `lua-utf8`, `socket`, LuaJIT and the launcher in `macos/runtime/`. The time taken and disk used are recorded in `docs/STATUS.md`.
-- [ ] `otool -L` on each built file shows nothing outside `macos/runtime/`, `/usr/lib` and `/System`.
-- [ ] Starting the launcher from this folder opens the Path of Building window on the build list, in Dev Mode, with no error on screen or on standard error.
-- [ ] A screenshot of the build list and of the Tree tab of a build from `spec/TestBuilds` shows text, images and the tree drawn without gaps or garbling.
-- [ ] The ANGLE backend in use is recorded in `docs/DECISIONS.md` with the reason.
-- [ ] `git diff --stat origin/dev -- runtime runtime-win32.zip` prints nothing.
+- [x] `macos/build.sh` run from a clean checkout finishes and leaves the host library, `lcurl`, `lzip`, `lua-utf8`, `socket`, LuaJIT and the launcher in `macos/runtime/`. The time taken and disk used are recorded in `docs/STATUS.md`. Checked by deleting `macos/build/host` and `macos/runtime` and rebuilding: 183 seconds, with the dependencies restored from vcpkg's cache.
+- [x] `otool -L` on each built file shows nothing outside `macos/runtime/`, `/usr/lib` and `/System`.
+- [x] Starting the launcher from this folder opens the Path of Building window in Dev Mode, with no error on screen or on standard error. On a first run it opens a new unnamed build, not the build list as this criterion first said; `src/Modules/Main.lua` does the same on Windows. The log's only warnings are three image files that are not in the repository.
+- [x] A screenshot of the build list and of the Tree tab of a build from `spec/TestBuilds` shows text, images and the tree drawn without gaps or garbling. Checked with `OccVortex`, after fixing text that was missing from the lower half of the window (see below).
+- [x] The ANGLE backend in use is recorded in `docs/DECISIONS.md` with the reason: decision 19, OpenGL.
+- [x] `git diff --stat origin/dev -- runtime runtime-win32.zip` prints nothing.
 
 ## Phase 2: The numbers match
 
@@ -330,7 +333,14 @@ Lua libraries the runtime provides:
 
 ## Decisions made while building
 
-None yet.
+- **ANGLE's OpenGL backend, not Metal (phase 1).** With the Metal backend the host started and ran `Launch.lua`, then failed with "EGL: Failed to get EGL display". A Metal query showed the Intel Iris Pro does not support the Mac2 family, which ANGLE's Metal backend needs. The vcpkg recipe builds either backend but not both, so `vcpkg.json` is left as upstream has it, which gives OpenGL. This is the fallback the plan named.
+- **The build uses one vcpkg triplet for host and target, `x64-osx-pob` (phase 1).** With a separate host triplet vcpkg treated the build as a cross-compile and built LuaJIT twice.
+- **Fixes to the host's LuaJIT recipe (phase 1).** Its `configure` script was not executable, and it lacked the stock recipe's fix for an install step that replaces the `luajit` binary with a link to itself. Both only matter off Windows.
+- **Small portability fixes in the host (phase 1).** Missing includes in `base64` and `r_texture.cpp`, a bare `Sleep` call in `r_main.cpp`, a Windows-only define for `lua-utf8`, LuaJIT's file names in `FindLuaJIT.cmake`, and `IndexUTF8ToUTF32` moved out of a Windows-only block in `common.cpp`. None changes the Windows build's behaviour.
+- **The launcher sets `LUA_PATH` and `LUA_CPATH` (phase 1).** LuaJIT on Windows searches the executable's folder; on macOS it has no such default, so the launcher names the runtime folder.
+- **Text is culled against the framebuffer's height, not the window's (phase 1).** `r_font.cpp` skipped any line of text below the window's height in screen points while positions are in pixels, so on a Retina display the lower half of the window had no text. The two heights are equal on Windows, so nothing changes there.
+- **The LuaJIT patch calls `getenv` directly off Windows (phase 1).** Its non-Windows branch copied the result without checking for an unset variable, which crashed `os.getenv`.
+- **The build renames ANGLE's libraries to `libEGL.dylib` and `libGLESv2.dylib` and re-signs them (phase 1).** GLFW opens ANGLE by those names; the vcpkg recipe produces `liblibEGL_angle.dylib` and `liblibGLESv2_angle.dylib`.
 
 ## Not in this build
 

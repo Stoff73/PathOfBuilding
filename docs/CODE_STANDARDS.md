@@ -12,6 +12,7 @@ For Path of Building Community: Lua 5.1 on LuaJIT, run inside the SimpleGraphic 
    - Format as `.editorconfig` says: tabs in Lua. Match the file you are in, and never reformat or rename lines the change doesn't need.
    - CI spell-checks every changed file with cspell. Game terms it doesn't know go in its dictionary, not around it.
    - The Python scripts in the root are release tooling: Python 3.10 or later, standard library only, fully type-hinted.
+   - The C++ in `macos/` is C++17 and compiles without warnings under `-Wall -Wextra`. Its shell scripts are bash and start with `set -euo pipefail`.
 6. Types and names:
    - Lua has no static types, so new shared functions and classes carry EmmyLua annotations: `---@param`, `---@return`, `---@class`.
    - Declare everything `local`. The only globals are the ones the program already shares, such as `main`, `launch`, `data`, `modLib` and `calcLib`. Adding one is a decision recorded in the plan.
@@ -41,6 +42,7 @@ For Path of Building Community: Lua 5.1 on LuaJIT, run inside the SimpleGraphic 
    - `src/Data/`: game data. Only `src/Export` writes the generated files in it.
    - `src/Export/`: the only place that reads the game's files.
    - `src/HeadlessWrapper.lua`: stands in for the graphics host so the program runs from the command line and under test. `src/_SimpleGraphic.def.lua` defines the host's API.
-   - `runtime/`: the host binaries and vendored libraries. Features don't edit it.
+   - `runtime/`: the Windows host binaries and the vendored Lua libraries. Features don't edit it.
+   - `macos/`: everything Mac-specific that we write: the launcher, the update helper, and the build and packaging scripts. `macos/SimpleGraphic` is our fork of the host, as a submodule; a change there is guarded so that it only affects macOS. `macos/build/` and `macos/runtime/` are build output and are not committed.
    - `spec/System/`: the busted specs. `spec/TestBuilds/`: saved builds whose output is compared as a whole.
 18. Tests mirror the code: `spec/System/Test<Name>_spec.lua` tests `<Name>`. A spec starts from `newBuild()` and drives the real build objects, not copies of their logic.
