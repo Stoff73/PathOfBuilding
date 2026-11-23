@@ -1,0 +1,24 @@
+# Decisions
+
+Every decision a plan makes, with its reason. A decision takes effect when its plan is approved, and is not reopened without a brief. The plan holds the fuller reasoning.
+
+| # | Date | Decision | Reason | Plan | State |
+|---|---|---|---|---|---|
+| 1 | 2026-11-23 | Build upstream's SimpleGraphic host for macOS; no new host and no third-party frontend. | The same C++ draws and answers every host function on both platforms, so behaviour matches without re-proving it. | `01-macos` | Approved 2026-11-23 |
+| 2 | 2026-11-23 | Host changes live in a fork of the host repository, pinned as a submodule at `macos/SimpleGraphic`. | They change upstream's files and need its history to stay mergeable. | `01-macos` | Approved 2026-11-23 |
+| 3 | 2026-11-23 | Everything Mac-specific that we write goes in `macos/`. | Keeps merges from upstream `dev` simple. | `01-macos` | Approved 2026-11-23 |
+| 4 | 2026-11-23 | Dependencies come from the host's vcpkg manifest, not Homebrew. | Same pinned versions as the Windows build, including LuaJIT, so the numbers match. | `01-macos` | Approved 2026-11-23 |
+| 5 | 2026-11-23 | Draw through ANGLE: Metal backend first, OpenGL backend if Metal fails on this hardware. | The renderer is written for OpenGL ES; ANGLE under it means no renderer changes. | `01-macos` | Approved 2026-11-23 |
+| 6 | 2026-11-23 | Our own Mac launcher, which also passes `pob://` links on as the first argument. | The Windows launcher is Windows API throughout. | `01-macos` | Approved 2026-11-23 |
+| 7 | 2026-11-23 | A separate update helper with LuaJIT linked in, which waits for the application to exit and is not itself updated. | macOS has no file locks to hold it back, and rewriting a loaded library crashes the process using it. | `01-macos` | Approved 2026-11-23 |
+| 8 | 2026-11-23 | The application is a bundle: `Contents/MacOS` is the runtime folder, `Contents/Resources` the script folder. | With the two apart, `Main.lua` already keeps user data outside the bundle. | `01-macos` | Approved 2026-11-23 |
+| 9 | 2026-11-23 | Builds and settings go in `~/Documents/Path of Building/`, and screenshots in its `Screenshots` folder. | Same place as Windows; visible and easy to copy. | `01-macos` | Approved 2026-11-23 |
+| 10 | 2026-11-23 | The platform is `macos`; the manifest gains `macos` sources pointing at the fork, and the runtime ships as `runtime-macos.zip`. | Reuses the updater's existing per-platform sources and zip support, with one tracked copy of shared files. | `01-macos` | Approved 2026-11-23 |
+| 11 | 2026-11-23 | Two changes to `src/UpdateCheck.lua`: prefer the local platform's source, and skip files marked for another platform's runtime. | The Windows marker is `runtime="win32"`, which the `platform` filter ignores. Neither changes a Windows install. | `01-macos` | Approved 2026-11-23 |
+| 12 | 2026-11-23 | The Mac application follows the fork's `master` branch. | `dev` can move without breaking update checks; mirrors upstream. | `01-macos` | Approved 2026-11-23 |
+| 13 | 2026-11-23 | Shortcuts use Ctrl on the Mac, as on Windows, except that Option + Left and Option + Right jump a word. The host reports Ctrl as held for those key presses, so the Lua is unchanged. | The owner's decision. macOS takes Ctrl + Left and Right for switching desktops. | `01-macos` | Decided by the owner |
+| 14 | 2026-11-23 | Fatal errors and startup messages are shown on screen on the Mac. | The host's Unix console writes only to standard error, unseen when started from Finder. | `01-macos` | Approved 2026-11-23 |
+| 15 | 2026-11-23 | Specs on the Mac run with busted under LuaJIT built from the runtime's source. | Proves the calculations on the interpreter the application uses. | `01-macos` | Approved 2026-11-23 |
+| 16 | 2026-11-23 | Nothing is pushed to the host fork; host changes are committed in the submodule on this MacBook only. | The owner's decision. | `01-macos` | Decided by the owner |
+| 17 | 2026-11-23 | With no Windows machine, a Mac-saved build is checked in the Linux CI image, and responsiveness is measured on the Mac alone. | The owner has no Windows machine; the CI image runs the same Lua. | `01-macos` | Decided by the owner |
+| 18 | 2026-11-23 | The build proceeds on 16.5 GB of free disk, stops if space runs short, and deletes no Time Machine snapshot without asking. | Finder's larger figure counts space macOS reclaims on demand, which a build cannot rely on. | `01-macos` | Decided by the owner |
