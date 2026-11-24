@@ -142,7 +142,7 @@ You need Xcode's command line tools (`xcode-select --install`), CMake and Ninja 
 
        macos/build/rocks/bin/busted --exclude-pattern=TestTreeTab
 
-   `spec/System/TestTreeTab_spec.lua` has a check that never finishes, on every platform. `docker-compose up` works on a Mac as well.
+   `spec/System/TestTreeTab_spec.lua` has a check that never finishes, on every platform.
 
 Shortcuts use `Ctrl`, as on Windows, except that `Option` + `Left` and `Option` + `Right` jump a word in a text box. A change to the host is committed in `macos/SimpleGraphic`, on its branch `macos`, and guarded so that it only affects macOS. Most of the host's files have Windows line endings, which an edit must keep.
 

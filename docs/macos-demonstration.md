@@ -17,7 +17,7 @@ The owner needs an internet connection, a Path of Exile account, and for step 3 
 ## 1. Start from Finder
 
 - [ ] In Finder, open `macos/build` and double-click `Path of Building`. The window opens, with the version number at the bottom left and no "Dev Mode" beside it.
-- [ ] The build list shows the five test builds. Sort it, type in the search box, make a folder, and make a new build, rename it and delete it.
+- [ ] A first start opens a new, unnamed build, as on Windows. Press "<< Back". The build list shows the five test builds. Sort it, type in the search box, make a folder, and make a new build, rename it and delete it.
 - [ ] Open `Mirage Archer Toxic Rain`. It opens in about two seconds and the sidebar shows its figures.
 
 ## 2. Each tab
