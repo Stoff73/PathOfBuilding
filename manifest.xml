@@ -11,7 +11,7 @@
 	<Source part="tree" platform="macos" url="https://raw.githubusercontent.com/Stoff73/PathOfBuilding/{branch}/src/" />
 	<File name="changelog.txt" part="default" sha1="587fb7e8223daa26ad781248c642266f27f19ab2" />
 	<File name="help.txt" part="default" sha1="e486cb63a78f5ca355430b67fa23e02fd30f5771" />
-	<File name="LICENSE.md" part="default" sha1="c77635aa1ba0a2ffe8eb72f93b3376e3a3d2041a" />
+	<File name="LICENSE.md" part="default" sha1="158e678e3f19b813e13c8007df4631c11962e7eb" />
 	<File name="Assets/ascendancypassiveheaderleft.png" part="program" sha1="6a65683dcc3b14382dc083198fe9361454e91b15" />
 	<File name="Assets/ascendancypassiveheadermiddle.png" part="program" sha1="79ccf100c4154d8f65544e2b32d44a612b7007c0" />
 	<File name="Assets/ascendancypassiveheaderright.png" part="program" sha1="dbb86c1b8b51019379e52cd1f8b2a9edee07a3f6" />
@@ -1462,7 +1462,7 @@
 	<File name="libglfw.3.4.dylib" part="runtime" platform="macos" sha1="58b9cb47d999d8c00c8cdcdab5152f12b39741f0" />
 	<File name="libluajit-5.1.2.1.1784580905.dylib" part="runtime" platform="macos" sha1="393c209c51583e68650e2e26f28663ea3e98f6cb" />
 	<File name="libre2.11.0.0.dylib" part="runtime" platform="macos" sha1="61f76f06fcc64b0e5577ea0a7b0bd6b4d96e015c" />
-	<File name="libSimpleGraphic.dylib" part="runtime" platform="macos" sha1="8bbc86b9cca15958c48bd2b48bb16ff89d076e89" />
+	<File name="libSimpleGraphic.dylib" part="runtime" platform="macos" sha1="af03bc6691ff0f78807d12bca909a0af36c711c6" />
 	<File name="libssl.3.dylib" part="runtime" platform="macos" sha1="cbcfcb7718c7894804e684d47d60f25b6b56ee63" />
 	<File name="libwebpdecoder.3.2.0.dylib" part="runtime" platform="macos" sha1="87320a0c23c0fd05f4ca09954d53613ccdbc83cf" />
 	<File name="libz.1.3.2.dylib" part="runtime" platform="macos" sha1="043d5ea1286a86be0119337fe0c99897089d9d54" />
