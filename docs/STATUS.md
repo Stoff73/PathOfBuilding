@@ -6,6 +6,27 @@ This folder holds Path of Building Community as it stands on its `dev` branch, w
 
 The folder is a git repository on the branch `dev`, tracking `origin/dev` on the fork `https://github.com/Stoff73/PathOfBuilding.git`. The code matches `origin/dev` at `f4a77c589`. The process docs are committed on `dev`. Nothing has been pushed.
 
+## Where work stopped
+
+Phases 1, 2, 4 and 5 of `docs/plans/01-macos.md` are done. Phase 3 is done as far as an agent can take it. Phase 6 has not been started. The session stopped on 2026-11-24 with everything committed on the branch `01-macos` and nothing running.
+
+Phase 6, in order:
+
+1. Make `macos/build.sh` fetch the host's own pinned sources on a fresh checkout, so the written steps are short. `git submodule update --init --depth 1` inside `macos/SimpleGraphic` does not land on the pinned commits, and `dep/compressonator` wants Git LFS, which is not installed. What works, per nested submodule: `git -c filter.lfs.smudge= -c filter.lfs.process= -c filter.lfs.required=false fetch --depth 1 origin <pinned sha>`, then check that commit out.
+2. Write the docs: a Mac section in `CONTRIBUTING.md` (build, run, package, test), the publishing steps in `RELEASE.md` (they are in the plan under "Decisions made while building"), `macos/` in `docs/rundown.md`, and in `docs/CODE_STANDARDS.md` the rules that the host's files keep their line endings, most being CRLF, and that the published manifest lives on `macos-release` only.
+3. `LICENSE.md`: the Mac runtime links OpenSSL, which Windows does not. The file also does not name GLFW, zlib, zstd, libwebp, luasocket, luautf8, sol2, imgui, glm or compressonator, some of which Windows ships too.
+4. Write the owner's demonstration checklist as `docs/macos-demonstration.md`. It carries every line the plan leaves open: the by-hand lines of parity checklist part A, all of parts B and C, the fatal error alert, trackpad scrolling, dragging the window between the two displays, a real `pob://` link, and pressing the Update button.
+5. Verify: a fresh clone built from the written steps alone (the host submodule has to come from this folder's copy, because its commits are not pushed); the suite on the Mac with `macos/build/rocks/bin/busted --exclude-pattern=TestTreeTab` and in the CI image, including `TestUpdateCheck_spec.lua`, which has only been run on the Mac; and `git diff --stat origin/dev -- runtime runtime-win32.zip manifest.xml` printing nothing.
+6. The demonstration with the owner, then the plan's "Lessons".
+
+What the next agent needs to know that the code does not say:
+
+- Send no synthetic key or mouse input to the desktop (decision 22). Windows can be captured without input: `screencapture -x -o -l <window id>`.
+- Ask the owner before every push. Nothing goes to the host fork. `macos-release` is pushed, at `ef674adcd`. `01-macos` and the docs commit on local `dev` are not pushed.
+- Docker Desktop hung twice here and strains this 16 GB Mac. Start it with `open -g -a Docker`, put a hard time limit on every `docker` command, and quit it when the run is done.
+- `macos/build/` is ignored by git and holds things that are costly to remake: the vcpkg build tree, busted in `rocks/`, `hedit.py` for edits to the host that keep its line endings, and `test/Path of Building.app`, an installed copy at the second release.
+- Starting the packaged application creates `~/Documents/Path of Building/`. It is there now, holding an empty `Builds` folder. `src/Builds/` holds three test builds copied for testing; git ignores it.
+
 ## Running it
 
 - The application: `./runtime/Path{space}of{space}Building.exe`, a Windows executable. Run from this folder it starts in Dev Mode, as `CONTRIBUTING.md` describes.
@@ -50,6 +71,7 @@ None. This is a desktop application with no HTTP API.
 
 | Date | Time | Agent | What was done | Brief or plan |
 |---|---|---|---|---|
+| 2026-11-24 | 15:44 GMT | Claude Code (claude-fable-5-2) | Stopped at the owner's request so the session's context can be cleared. Wrote "Where work stopped" in this file: the six steps of phase 6, in order, and what the next agent needs to know. Everything is committed on `01-macos`; nothing is running. | `docs/plans/01-macos.md` phase 6 |
 | 2026-11-24 | 15:42 GMT | Claude Code (claude-fable-5-2) | Phase 5. With the owner's go-ahead, pushed a new branch `macos-release` to `Stoff73/PathOfBuilding` twice: a first release, then the real tree as an update to it. An installed copy of the first found the second, staged the changed Lua file and the new launcher, and after the apply steps were run from the shell the launcher was replaced, still executable, and the application restarted and reported no further update. The test build in Documents kept its checksum. Not done: pressing the Update button, which is left for the demonstration, and the updater spec in the CI image. `dev` on GitHub is untouched and nothing was pushed to the host fork. | `docs/plans/01-macos.md` phase 5 |
 | 2026-11-24 | 14:53 GMT | Claude Code (claude-fable-5-2) | Built phase 4 and the update code. `macos/package.py` assembles `Path of Building.app`; it runs in installed mode, keeps builds and settings in Documents, opens a Windows-saved build with the right figures, quits normally and handles `pob://` links. Mac-saved builds give identical outputs in the CI image. Wrote the update helper, three changes to `UpdateCheck.lua` with a spec that passes on the Mac, and macOS support in `update_manifest.py`. Found that GitHub serves upstream's `master` for the fork, so the Mac application now follows `macos-release` and refuses any release without a Mac runtime (decisions 23 to 25). Not done: every feature by hand, a real link import, and publishing. | `docs/plans/01-macos.md` phases 4 and 5 |
 | 2026-11-24 | 13:46 GMT | Claude Code (claude-fable-5-2) | Phase 3, part done. Host changes for macOS committed in the submodule: starting a process, the Documents folder, cloud provider names, on-screen fatal errors, the screenshot folder, pointer position in pixels, trackpad scrolling, Option + arrow, and ANGLE's layer following the display's scale. Fixed three host faults that only showed on the Mac (`lzip` field width, file search on folders, a dropped error message). Wrote `macos/host_check.lua`: 25 checks pass on both displays. Not done: the checks that need key and mouse input, the fatal error alert seen on screen, and the performance figures. While testing with synthetic input, two clicks and six scroll steps went to the owner's Chrome window, which was in front of the test window; synthetic input is stopped until the owner says how to proceed. | `docs/plans/01-macos.md` phase 3 |
