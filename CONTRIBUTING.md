@@ -131,10 +131,12 @@ You need Xcode's command line tools (`xcode-select --install`), CMake and Ninja 
 
    The application runs in installed mode: it keeps builds and settings in `~/Documents/Path of Building/` and checks the fork's `macos-release` branch for updates. Copy it to `/Applications` to install it. The script also writes `runtime-macos.zip` and `manifest-updated.xml`, which [a release](RELEASE.md#macos-releases) publishes.
 
-4. Run the tests under the LuaJIT that the runtime uses. Install busted for it once (`brew install luarocks`):
+4. Run the tests under the LuaJIT that the runtime uses. Install busted and luautf8 for it once (`brew install luarocks`):
 
        deps="$PWD/macos/build/host/vcpkg_installed/x64-osx-pob"
-       luarocks --lua-version 5.1 --tree macos/build/rocks install busted LUA="$deps/tools/luajit/luajit" LUA_INCDIR="$deps/include/luajit-2.1"
+       for rock in busted luautf8; do
+           luarocks --lua-version 5.1 --tree macos/build/rocks install $rock LUA="$deps/tools/luajit/luajit" LUA_INCDIR="$deps/include/luajit-2.1"
+       done
 
    Then:
 
