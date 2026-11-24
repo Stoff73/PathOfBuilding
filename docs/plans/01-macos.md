@@ -342,6 +342,15 @@ Lua libraries the runtime provides:
 - **The LuaJIT patch calls `getenv` directly off Windows (phase 1).** Its non-Windows branch copied the result without checking for an unset variable, which crashed `os.getenv`.
 - **The build renames ANGLE's libraries to `libEGL.dylib` and `libGLESv2.dylib` and re-signs them (phase 1).** GLFW opens ANGLE by those names; the vcpkg recipe produces `liblibEGL_angle.dylib` and `liblibGLESv2_angle.dylib`.
 
+### Phase 2 findings, waiting for the owner
+
+Phase 2 is measured but not ticked off, because three of its criteria rest on assumptions about the repository that turned out to be wrong. None of the three is caused by the Mac work. Each is checked against the CI image at the same commit instead.
+
+- **The suite.** On the Mac, under LuaJIT built from the runtime's source, 909 checks pass and none fail. The CI image gives the same 909 and none failing. Both exclude `spec/System/TestTreeTab_spec.lua`, whose check "Copies multiple times with unique IDs" never finishes: it deep-compares two whole passive specs. It hung on the Mac in every attempt and in the CI image, and upstream's own CI runs of this code either finish in under three minutes or are cancelled at six hours. The spec came from upstream on 2026-11-22. So "the whole suite passes" cannot be shown on either platform until that spec is fixed.
+- **The mod cache.** Regenerating it on the Mac adds 24 entries for newly added support gems and changes nothing else, so `git diff --exit-code` is not clean. The CI image regenerates a byte-identical file (4,113,289 bytes). The committed cache is behind the data; the Mac and the CI image agree exactly.
+- **The stored test builds.** The outputs in `spec/TestBuilds` were last generated in 2022, and nothing in CI runs them. Against today's code 900 of 2,164 values differ on the Mac, as they would anywhere. The meaningful check is to generate the outputs on the Mac and in the CI image at the same commit and compare. The CI image's were generated; the Mac's were not, because the system stopped that run when memory ran low.
+- **The documented headless command.** `LUA_PATH='../runtime/lua/?.lua;../runtime/lua/?/init.lua'` no longer finds `Data.PearlSupports`, in the CI image as on the Mac. Adding `./?.lua;./?/init.lua` fixes it, and `docs/CODE_STANDARDS.md` rule 10 now says so.
+
 ## Not in this build
 
 - Apple Silicon, and a universal binary.
