@@ -58,3 +58,5 @@ if opFileName then
 end
 
 return applyUpdate
+
+-- macOS update test: the next release removes this line
