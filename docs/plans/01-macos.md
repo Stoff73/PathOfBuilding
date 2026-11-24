@@ -142,11 +142,13 @@ Fills in every host function that is a stub or behaves differently on macOS: sta
 Why third: the application's features sit on these functions, so they are proven one by one before the features are.
 
 - [x] `macos/host_check.lua`, run through the launcher, reports a pass for every function in part A of the parity checklist that it can call without a person. 25 checks pass and none fail, on the external display at scale 1 and on the built-in display at scale 2, and the test card it draws is correct on both.
-- [ ] Every other line in part A is ticked after being exercised by hand, with a note of how.
-- [ ] On the built-in Retina display the cursor lands on what it points at, in a window and in full screen: clicking a passive node allocates that node.
-- [ ] Two-finger scrolling moves a list at a rate comparable to a mouse wheel, and zooms the tree a step at a time.
-- [ ] A fatal error forced at startup appears in a window on screen, not only on standard error.
-- [ ] Dragging and zooming the passive tree for ten seconds holds the display's refresh rate, and the figure is recorded. So is the time to open the largest build in `spec/TestBuilds`.
+The owner decided on 2026-11-24 to make the checks that need a person at the keyboard and trackpad at the demonstration, after synthetic input from the agent went to the wrong window. The five criteria below stay open until then. What the agent could establish without input is noted on each.
+
+- [ ] Every other line in part A is ticked after being exercised by hand, with a note of how. Left for the demonstration: `OpenURL`, `Restart`, the key and mouse callbacks, `CanExit`, resizing and full screen.
+- [ ] On the built-in Retina display the cursor lands on what it points at, in a window and in full screen: clicking a passive node allocates that node. Established so far: at scale 2, `SetCursorPos` then `GetCursorPos` returns the same point, the Skills button highlights under the pointer, and a click on it opened the Skills tab.
+- [ ] Two-finger scrolling moves a list at a rate comparable to a mouse wheel, and zooms the tree a step at a time. Built, with the rate in one constant, `SCROLL_STEPS_PER_UNIT` in `sys_video.cpp`; not yet felt by a person.
+- [ ] A fatal error forced at startup appears in a window on screen, not only on standard error. Built; the alert was raised twice by real errors during testing, but the agent did not see it on screen.
+- [ ] Dragging and zooming the passive tree for ten seconds holds the display's refresh rate, and the figure is recorded. So is the time to open the largest build in `spec/TestBuilds`. Recorded: the five test builds load and calculate in 0.35 to 1.5 seconds headless (the largest, Mirage Archer Toxic Rain, in 1.3), and the program starts in 13 to 21 seconds in Dev Mode. The frame rate while dragging is left for the demonstration.
 - [ ] Each shortcut in part C of the checklist does on the Mac what it does on Windows, and Option + Left and Option + Right jump a word in a text box.
 
 ## Phase 4: The application and every feature
