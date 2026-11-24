@@ -23,18 +23,22 @@ fi
 [ -e "$host/CMakeLists.txt" ] || git -C "$repo" submodule update --init macos/SimpleGraphic
 
 # Fetch the host's own sources at the commits it pins. "git submodule update --depth 1" does not
-# land on them, and compressonator marks files the build does not use for Git LFS, so its filter is off.
-no_lfs=(-c filter.lfs.smudge= -c filter.lfs.process= -c filter.lfs.required=false)
+# land on them. compressonator marks files the build does not use for Git LFS, so that filter is
+# switched off in each one: git then works there whether or not Git LFS is installed.
 git -C "$host" submodule init -q
 git -C "$host" submodule status | while read -r sha path _; do
 	sha="${sha#[-+]}"
 	[ "$(git -C "$host/$path" rev-parse HEAD 2>/dev/null)" = "$sha" ] && continue
 	git init -q "$host/$path"
-	git -C "$host/$path" "${no_lfs[@]}" fetch -q --depth 1 "$(git -C "$host" config "submodule.$path.url")" "$sha"
-	git -C "$host/$path" "${no_lfs[@]}" checkout -q FETCH_HEAD
+	for key in smudge clean process; do
+		git -C "$host/$path" config "filter.lfs.$key" ""
+	done
+	git -C "$host/$path" config filter.lfs.required false
+	git -C "$host/$path" fetch -q --depth 1 "$(git -C "$host" config "submodule.$path.url")" "$sha"
+	git -C "$host/$path" checkout -q FETCH_HEAD
 done
 
-[ -x "$host/vcpkg/vcpkg" ] ||"$host/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+[ -x "$host/vcpkg/vcpkg" ] || "$host/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 
 cmake -S "$host" -B "$build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
 	-DVCPKG_TARGET_TRIPLET="$triplet" -DVCPKG_HOST_TRIPLET="$triplet" \
