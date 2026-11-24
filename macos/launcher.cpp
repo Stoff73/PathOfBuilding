@@ -71,7 +71,10 @@ int main(int argc, char** argv)
 
 	std::string host;
 	fs::path script;
-	if (args.empty() || !readHostName(args[0], host)) {
+	if (!args.empty() && readHostName(args[0], host)) {
+		// The host reads a relative path as relative to the runtime folder, not to where we were started.
+		args[0] = fs::canonical(args[0]).string();
+	} else {
 		if (!findLaunchScript(runtime, script, host)) {
 			fprintf(stderr, "ERROR: Could not find a valid launcher lua file.\n");
 			return 1;
