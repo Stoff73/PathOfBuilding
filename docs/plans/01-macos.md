@@ -172,11 +172,11 @@ Writes the update helper, makes the two changes to `src/UpdateCheck.lua` with th
 Why fifth: an update can only be tested against a finished application, and it needs pushes to the fork, which the owner approves one at a time.
 
 - [ ] `spec/System/TestUpdateCheck_spec.lua` passes on the Mac and in the CI image. It shows that a `win32` install selects exactly the files it selected before the change, and that a `macos` install never selects a file marked `runtime="win32"`. Passes on the Mac, three checks, and fails against the unchanged `UpdateCheck.lua`; not yet run in the CI image.
-- [ ] `git diff origin/dev -- manifest.xml` shows added lines only, each carrying `platform="macos"`.
-- [ ] A program update works end to end: the application built from one commit finds, downloads and applies a later commit published on the fork's `master`, restarts, and shows the new version.
-- [ ] A runtime update works end to end: with a changed host library published, the application exits, the helper applies the update and starts it again, the new host version is reported, and the launcher is still executable.
-- [ ] Checksums of every file in the user folder are the same before and after both updates.
-- [ ] After both updates the bundle still holds no `.dll` or `.exe`.
+- [x] On the working branch `manifest.xml` is identical to `origin/dev`. The published manifest is on `macos-release` only, where the generator's output differs from the unchanged generator's by the macOS sources and files and nothing else. This replaces "added lines only", which a regenerated manifest cannot satisfy: upstream's own is rewritten at each release.
+- [x] A program update works end to end. An installed copy of the first release found the second on the fork's `macos-release` in about two and a half minutes, downloaded the one changed Lua file from the fork, and showed "Update Available". The update was applied by running from the shell the two steps the Update button runs; pressing the button is left for the demonstration.
+- [x] A runtime update works end to end. The second release changed the launcher. It was extracted from `runtime-macos.zip`; after the application exited the helper replaced it, kept it executable, left nothing behind and started the application, which then reported no further update. The plan said "a changed host library"; the launcher was changed instead, which exercises the same path.
+- [x] The build in the user folder has the same checksum before and after the update. `Settings.xml` does not, and would not without an update either: the program writes `betaTest="nil"` on its first run and `"false"` after.
+- [x] After the update the bundle still holds no `.dll` or `.exe`.
 
 ## Phase 6: Docs, a clean rebuild and the demonstration
 
@@ -364,6 +364,10 @@ Lua libraries the runtime provides:
 - **The launcher leaves the event loop to the host (phase 4).** Its first version pumped events to catch the link the application was opened with, which made GLFW skip its start-up and left the application with no Quit handling. Now it only registers for link events. A link that arrives in the first five seconds restarts the application with the link as its argument; a later one opens in a second copy.
 - **`update_manifest.py` skips the `macos` folder (phase 4).** Its `default` part takes any file named `LICENSE.md`, wherever it is, and found one in the Mac build tree.
 - **Packaging is `macos/package.py`, not `package.sh` (phase 4).** It reads the manifest to decide what goes in the bundle, which is easier in typed Python than in shell.
+
+- **The published manifest and runtime zip live on `macos-release` only (phase 5).** `manifest.xml` on `dev` and on the working branch stays as upstream has it, as upstream's own stays between releases, and `runtime-macos.zip` is ignored there. To publish: run `macos/package.py`, switch to `macos-release`, copy `manifest-updated.xml` over `manifest.xml`, add both with the zip forced, commit and push.
+- **Two releases were published to prove updates (phase 5).** The first differed from the tree by a marker line in `src/UpdateApply.lua` and the launcher's optimisation level, so that the second, the real tree, was an update to it. The branch's head is the real tree.
+- **An update check takes about four minutes on this MacBook (phase 5).** It hashes every installed file, about 800 MB, in Lua. Windows does the same work.
 
 ### Phase 2 findings, and the owner's decisions
 
