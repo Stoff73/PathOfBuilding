@@ -20,6 +20,24 @@ if [ "$free_gb" -lt 3 ]; then
 	exit 1
 fi
 
+[ -e "$host/CMakeLists.txt" ] || git -C "$repo" submodule update --init macos/SimpleGraphic
+
+# Fetch the host's own sources at the commits it pins. "git submodule update --depth 1" does not
+# land on them. compressonator marks files the build does not use for Git LFS, so that filter is
+# switched off in each one: git then works there whether or not Git LFS is installed.
+git -C "$host" submodule init -q
+git -C "$host" submodule status | while read -r sha path _; do
+	sha="${sha#[-+]}"
+	[ "$(git -C "$host/$path" rev-parse HEAD 2>/dev/null)" = "$sha" ] && continue
+	git init -q "$host/$path"
+	for key in smudge clean process; do
+		git -C "$host/$path" config "filter.lfs.$key" ""
+	done
+	git -C "$host/$path" config filter.lfs.required false
+	git -C "$host/$path" fetch -q --depth 1 "$(git -C "$host" config "submodule.$path.url")" "$sha"
+	git -C "$host/$path" checkout -q FETCH_HEAD
+done
+
 [ -x "$host/vcpkg/vcpkg" ] || "$host/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 
 cmake -S "$host" -B "$build" -G Ninja -DCMAKE_BUILD_TYPE=Release \

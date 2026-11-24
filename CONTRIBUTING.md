@@ -5,11 +5,12 @@
 2. [Requesting features](#requesting-features)
 3. [Contributing code](#contributing-code)
 4. [Setting up a development installation](#setting-up-a-development-installation)
-5. [Setting up a development environment](#setting-up-a-development-environment)
-6. [Keeping your fork up to date](#keeping-your-fork-up-to-date)
-7. [Path of Building development tutorials](#path-of-building-development-tutorials)
-8. [Exporting GGPK data from Path of Exile](#exporting-ggpk-data-from-path-of-exile)
-9. [Using the inbuilt profiler](#Using-the-inbuilt-profiler)
+5. [Building and running on macOS](#building-and-running-on-macos)
+6. [Setting up a development environment](#setting-up-a-development-environment)
+7. [Keeping your fork up to date](#keeping-your-fork-up-to-date)
+8. [Path of Building development tutorials](#path-of-building-development-tutorials)
+9. [Exporting GGPK data from Path of Exile](#exporting-ggpk-data-from-path-of-exile)
+10. [Using the inbuilt profiler](#Using-the-inbuilt-profiler)
 
 ## Reporting bugs
 
@@ -98,6 +99,52 @@ To do so [comment out Line 54 to line 58](./src/Launch.lua#L54-L58) of the [Laun
 and create a valid manifest.xml file in the ./src directory. Then run the `./runtime/Path{space}of{space}Building.exe` as usual. You should get the typical update popup in the bottom left corner.
 
 The manifest.xml file deserves its own in depth document, but usually copying from release and editing accordingly works well enough.
+
+## Building and running on macOS
+
+The fork `Stoff73/PathOfBuilding` runs natively on an Intel Mac. The Mac runtime is built from source: the files in `runtime/` are Windows binaries and are not used. Everything Mac-specific is in `macos/`, and `macos/SimpleGraphic` is a fork of the graphics host, as a git submodule.
+
+You need Xcode's command line tools (`xcode-select --install`), CMake and Ninja (`brew install cmake ninja`), Python 3.10 or later, and 3 GB of free disk space.
+
+1. Clone the fork and build the runtime:
+
+       git clone -b dev https://github.com/Stoff73/PathOfBuilding.git
+       cd PathOfBuilding
+       macos/build.sh
+
+   The script fetches the host and the sources it pins, builds them and their dependencies with vcpkg, and stages the runtime in `macos/runtime/`. The first build compiles every dependency and takes about an hour on a 2014 MacBook Pro. Later builds restore them from vcpkg's cache in `~/.cache/vcpkg` and take a few minutes.
+
+   The host's macOS changes are not pushed to its fork yet. Until they are, a new clone takes the host from a folder that has them, before running `macos/build.sh`:
+
+       git submodule init macos/SimpleGraphic
+       git config submodule.macos/SimpleGraphic.url /path/to/built/PathOfBuilding/macos/SimpleGraphic
+       git -c protocol.file.allow=always submodule update macos/SimpleGraphic
+
+2. Run it in Dev Mode, as described above for Windows:
+
+       "macos/runtime/Path of Building"
+
+3. Package the application:
+
+       python3 macos/package.py
+       open "macos/build/Path of Building.app"
+
+   The application runs in installed mode: it keeps builds and settings in `~/Documents/Path of Building/` and checks the fork's `macos-release` branch for updates. Copy it to `/Applications` to install it. The script also writes `runtime-macos.zip` and `manifest-updated.xml`, which [a release](RELEASE.md#macos-releases) publishes.
+
+4. Run the tests under the LuaJIT that the runtime uses. Install busted and luautf8 for it once (`brew install luarocks`):
+
+       deps="$PWD/macos/build/host/vcpkg_installed/x64-osx-pob"
+       for rock in busted luautf8; do
+           luarocks --lua-version 5.1 --tree macos/build/rocks install $rock LUA="$deps/tools/luajit/luajit" LUA_INCDIR="$deps/include/luajit-2.1"
+       done
+
+   Then:
+
+       macos/build/rocks/bin/busted --exclude-pattern=TestTreeTab
+
+   `spec/System/TestTreeTab_spec.lua` has a check that never finishes, on every platform.
+
+Shortcuts use `Ctrl`, as on Windows, with two exceptions: `Option` + `Left` and `Option` + `Right` jump a word in a text box, and `Ctrl` + `F12` takes a screenshot, as a MacBook's keyboard has no Print Screen key. A change to the host is committed in `macos/SimpleGraphic`, on its branch `macos`, and guarded so that it only affects macOS. Most of the host's files have Windows line endings, which an edit must keep.
 
 ## Keeping your fork up to date
 

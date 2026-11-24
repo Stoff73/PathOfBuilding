@@ -23,6 +23,29 @@ Steps:
 6. Create a tag for the new release either by creating a release on GitHub, or running (for example) `git tag v2.4.0; git push --tags`
 7. Merge the PR into `master`.  PoB will take a few minutes before it can find the update
 
+## macOS releases
+
+The Mac application is published by the fork, `Stoff73/PathOfBuilding`, and updates itself from that repository's `macos-release` branch. That branch holds the released tree, its `manifest.xml` and the Mac runtime, `runtime-macos.zip`. On every other branch `manifest.xml` stays as upstream has it and the zip is ignored by git. The name is one upstream does not use: GitHub answers a request for a branch the fork lacks with upstream's branch of that name, which would offer a Mac a Windows release.
+
+Steps, on a Mac that [builds the runtime](CONTRIBUTING.md#building-and-running-on-macos):
+1. Bring the release branch up to date with the branch being released:
+
+       git checkout macos-release
+       git merge dev
+
+   A conflict in `manifest.xml` can be settled either way, as step 4 replaces the file.
+2. To change the version number, run `python3 update_manifest.py --in-place --set-version 2.x.y`.
+3. Build the runtime and package it: `macos/build.sh`, then `python3 macos/package.py`. This writes `runtime-macos.zip` and `manifest-updated.xml` for the tree as it is.
+4. Publish them:
+
+       cp manifest-updated.xml manifest.xml
+       git add manifest.xml
+       git add -f runtime-macos.zip
+       git commit -m "macOS release"
+       git push origin macos-release
+
+An installed copy finds the release the next time it checks for updates. GitHub can take five minutes to serve the new files, and the check itself takes about four minutes on a 2014 MacBook Pro, as it hashes every installed file. The update helper, `Update`, is not itself updated, as `Update.exe` is not on Windows.
+
 ## GGPK Data updates
 
 Updating data from the GGPK uses the PoB exporter (see CONTRIBUTING.md#exporting-ggpk-data-from-path-of-exile).  Run each script in order, then check the differences in data to make sure nothing is missing that is expected.

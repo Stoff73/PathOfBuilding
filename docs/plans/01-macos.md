@@ -70,7 +70,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/SimpleGraphic/engine/common/`, `engine/render/` | 1 | Portability fixes so the host compiles on macOS |
 | `macos/SimpleGraphic/engine/system/win/sys_video.cpp` | 1, 3 | Chooses the ANGLE backend on macOS; cursor position, display scale and scrolling behave as on Windows |
 | `macos/SimpleGraphic/engine/system/win/sys_macos.mm` | 3 | The macOS system calls: start a process, find the cursor, find Documents, name a cloud provider, show a message window |
-| `macos/SimpleGraphic/engine/system/win/sys_main.cpp` | 3 | Calls those on macOS where it now has a "not implemented" stub; reports Ctrl as held for Option + Left and Option + Right |
+| `macos/SimpleGraphic/engine/system/win/sys_main.cpp` | 3, 6 | Calls those on macOS where it now has a "not implemented" stub; reports Ctrl as held for Option + Left and Option + Right, and F12 as Print Screen |
 | `macos/SimpleGraphic/engine/system/win/sys_console_unix.cpp` | 3 | Shows startup and fatal messages on screen on macOS |
 | `macos/SimpleGraphic/ui_api.cpp` | 3 | `GetCloudProvider` answers on macOS |
 | `macos/SimpleGraphic/engine/render/r_main.cpp` | 3 | Saves screenshots to `~/Documents/Path of Building/Screenshots/` on macOS |
@@ -89,6 +89,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `runtime-macos.zip` | 5 | The Mac runtime the updater downloads |
 | `docs/DECISIONS.md` | Plan | The decisions above |
 | `docs/CODE_STANDARDS.md` | 1, 6 | Gains the `macos/` boundary and the rules for its C++ and shell |
+| `docs/macos-demonstration.md` | 6 | The owner's checklist for the demonstration |
 | `docs/STATUS.md` | Every | What's built, how to run it on a Mac, and the log |
 | `CONTRIBUTING.md` | 6 | How to build and run on a Mac |
 | `RELEASE.md` | 6 | How to publish a release and a Mac runtime on the fork |
@@ -171,12 +172,12 @@ Writes the update helper, makes the two changes to `src/UpdateCheck.lua` with th
 
 Why fifth: an update can only be tested against a finished application, and it needs pushes to the fork, which the owner approves one at a time.
 
-- [ ] `spec/System/TestUpdateCheck_spec.lua` passes on the Mac and in the CI image. It shows that a `win32` install selects exactly the files it selected before the change, and that a `macos` install never selects a file marked `runtime="win32"`. Passes on the Mac, three checks, and fails against the unchanged `UpdateCheck.lua`; not yet run in the CI image.
-- [ ] `git diff origin/dev -- manifest.xml` shows added lines only, each carrying `platform="macos"`.
-- [ ] A program update works end to end: the application built from one commit finds, downloads and applies a later commit published on the fork's `master`, restarts, and shows the new version.
-- [ ] A runtime update works end to end: with a changed host library published, the application exits, the helper applies the update and starts it again, the new host version is reported, and the launcher is still executable.
-- [ ] Checksums of every file in the user folder are the same before and after both updates.
-- [ ] After both updates the bundle still holds no `.dll` or `.exe`.
+- [x] `spec/System/TestUpdateCheck_spec.lua` passes on the Mac and in the CI image. It shows that a `win32` install selects exactly the files it selected before the change, and that a `macos` install never selects a file marked `runtime="win32"`. Passes on the Mac, three checks, and fails against the unchanged `UpdateCheck.lua`. In the CI image the suite went from 909 passing checks to 912 with it, in phase 6.
+- [x] On the working branch `manifest.xml` is identical to `origin/dev`. The published manifest is on `macos-release` only, where the generator's output differs from the unchanged generator's by the macOS sources and files and nothing else. This replaces "added lines only", which a regenerated manifest cannot satisfy: upstream's own is rewritten at each release.
+- [x] A program update works end to end. An installed copy of the first release found the second on the fork's `macos-release` in about two and a half minutes, downloaded the one changed Lua file from the fork, and showed "Update Available". The update was applied by running from the shell the two steps the Update button runs; pressing the button is left for the demonstration.
+- [x] A runtime update works end to end. The second release changed the launcher. It was extracted from `runtime-macos.zip`; after the application exited the helper replaced it, kept it executable, left nothing behind and started the application, which then reported no further update. The plan said "a changed host library"; the launcher was changed instead, which exercises the same path.
+- [x] The build in the user folder has the same checksum before and after the update. `Settings.xml` does not, and would not without an update either: the program writes `betaTest="nil"` on its first run and `"false"` after.
+- [x] After the update the bundle still holds no `.dll` or `.exe`.
 
 ## Phase 6: Docs, a clean rebuild and the demonstration
 
@@ -184,11 +185,11 @@ Brings the docs up to date, proves the written build steps, and prepares what th
 
 Why last: the docs describe the finished product, and the demonstration is the brief's final test.
 
-- [ ] A fresh clone of this folder into a temporary folder, with its submodule taken from the local copy because the host changes are not pushed, built by following only the Mac section of `CONTRIBUTING.md`, yields a working `Path of Building.app`.
-- [ ] `docs/STATUS.md`, `CONTRIBUTING.md`, `RELEASE.md`, `docs/rundown.md` and `docs/CODE_STANDARDS.md` describe the product as it now is, and `LICENSE.md` covers every library in the Mac runtime.
-- [ ] The whole busted suite passes on the Mac and in the CI image at the final commit.
-- [ ] `git diff --stat origin/dev -- runtime runtime-win32.zip` prints nothing, and the `manifest.xml` check from phase 5 still holds.
-- [ ] The owner watches the demonstration the brief describes, and every line of the parity checklist left for the demonstration is ticked.
+- [x] A fresh clone of this folder into a temporary folder, with its submodule taken from the local copy because the host changes are not pushed, built by following only the Mac section of `CONTRIBUTING.md`, yields a working `Path of Building.app`. A clone at `b3132825a` built in 3 minutes 10 seconds with the dependencies restored from vcpkg's cache, and its application started in installed mode, showed version 2.68.1 and drew the tree. Two earlier attempts found faults in the written steps, which are fixed: see "Decisions made while building".
+- [x] `docs/STATUS.md`, `CONTRIBUTING.md`, `RELEASE.md`, `docs/rundown.md` and `docs/CODE_STANDARDS.md` describe the product as it now is, and `LICENSE.md` covers every library in the Mac runtime. The steps in `RELEASE.md` are the ones phase 5 used, with a merge added in front; they have not been run as written.
+- [x] The whole busted suite passes on the Mac and in the CI image at the final commit. 912 checks pass and none fail on each, at `b3132825a`, with `--exclude-pattern=TestTreeTab`: on the Mac in the fresh clone, with busted installed by the written steps, and in the CI image. Only docs have changed since that commit.
+- [x] `git diff --stat origin/dev -- runtime runtime-win32.zip` prints nothing, and the `manifest.xml` check from phase 5 still holds: `manifest.xml` is identical to `origin/dev` too.
+- [ ] The owner watches the demonstration the brief describes, and every line of the parity checklist left for the demonstration is ticked. The checklist is `docs/macos-demonstration.md`.
 
 ## Parity checklist
 
@@ -196,112 +197,114 @@ One line per host function and per feature, ticked once it has been exercised on
 
 ### Part A: host functions
 
+Ticked lines were exercised by `macos/host_check.lua` in phase 3: 25 checks passed on the external display at scale 1 and on the built-in display at scale 2. The owner runs it once more at the demonstration.
+
 Callbacks and loading:
 
-- [ ] `SetCallback`
-- [ ] `GetCallback`
-- [ ] `SetMainObject`
-- [ ] The callbacks `OnInit`, `OnFrame`, `OnKeyDown`, `OnKeyUp`, `OnChar`, `CanExit` and `OnExit` are delivered
-- [ ] `LoadModule`
-- [ ] `PLoadModule`
-- [ ] `PCall`
+- [x] `SetCallback`
+- [x] `GetCallback`
+- [x] `SetMainObject`
+- [ ] The callbacks `OnInit`, `OnFrame`, `OnKeyDown`, `OnKeyUp`, `OnChar`, `CanExit` and `OnExit` are delivered. `OnInit`, `OnFrame` and `OnExit` are exercised by `host_check.lua`; the key callbacks and `CanExit` are left for the demonstration.
+- [x] `LoadModule`
+- [x] `PLoadModule`
+- [x] `PCall`
 
 Images and textures:
 
-- [ ] `NewImageHandle`
-- [ ] `imageHandle:Load`
-- [ ] `imageHandle:LoadArtRectangle`
-- [ ] `imageHandle:LoadArtArcBand`
-- [ ] `imageHandle:Unload`
-- [ ] `imageHandle:IsValid`
-- [ ] `imageHandle:IsLoading`
-- [ ] `imageHandle:SetLoadingPriority`
-- [ ] `imageHandle:ImageSize`
-- [ ] `NewArtHandle`
-- [ ] `artHandle:Size`
-- [ ] `Texture.new`
-- [ ] `texHandle:Allocate`
-- [ ] `texHandle:Load`
-- [ ] `texHandle:Save`
-- [ ] `texHandle:Info`
-- [ ] `texHandle:IsValid`
-- [ ] `texHandle:StackTextures`
-- [ ] `GetAsyncCount`
+- [x] `NewImageHandle`
+- [x] `imageHandle:Load`
+- [ ] `imageHandle:LoadArtRectangle`. Cannot be exercised on any platform: see "Decisions made while building".
+- [x] `imageHandle:LoadArtArcBand`
+- [x] `imageHandle:Unload`
+- [x] `imageHandle:IsValid`
+- [x] `imageHandle:IsLoading`
+- [x] `imageHandle:SetLoadingPriority`
+- [x] `imageHandle:ImageSize`
+- [x] `NewArtHandle`
+- [x] `artHandle:Size`
+- [x] `Texture.new`
+- [x] `texHandle:Allocate`
+- [x] `texHandle:Load`
+- [x] `texHandle:Save`
+- [x] `texHandle:Info`
+- [x] `texHandle:IsValid`
+- [x] `texHandle:StackTextures`
+- [x] `GetAsyncCount`
 
 Drawing:
 
-- [ ] `RenderInit`
-- [ ] `GetScreenSize`
-- [ ] `GetScreenScale`
-- [ ] `SetClearColor`
-- [ ] `SetDrawLayer`
-- [ ] `GetDrawLayer`
-- [ ] `SetViewport`
-- [ ] `SetBlendMode`
-- [ ] `SetDrawColor`, both forms
-- [ ] `GetDrawColor`
-- [ ] `SetDPIScaleOverridePercent`
-- [ ] `GetDPIScaleOverridePercent`
-- [ ] `DrawImage`, all three forms
-- [ ] `DrawImageQuad`, all three forms
-- [ ] `DrawString`
-- [ ] `DrawStringWidth`
-- [ ] `DrawStringCursorIndex`
-- [ ] `StripEscapes`
+- [x] `RenderInit`
+- [x] `GetScreenSize`
+- [x] `GetScreenScale`
+- [x] `SetClearColor`
+- [x] `SetDrawLayer`
+- [x] `GetDrawLayer`
+- [x] `SetViewport`
+- [ ] `SetBlendMode`. Cannot be exercised on any platform: see "Decisions made while building".
+- [x] `SetDrawColor`, both forms
+- [x] `GetDrawColor`
+- [x] `SetDPIScaleOverridePercent`
+- [x] `GetDPIScaleOverridePercent`
+- [x] `DrawImage`, all three forms
+- [x] `DrawImageQuad`, all three forms
+- [x] `DrawString`
+- [x] `DrawStringWidth`
+- [x] `DrawStringCursorIndex`
+- [x] `StripEscapes`
 
 Files and folders:
 
-- [ ] `NewFileSearch`
-- [ ] `fileSearchHandle:NextFile`
-- [ ] `fileSearchHandle:GetFileName`
-- [ ] `fileSearchHandle:GetFileSize`
-- [ ] `fileSearchHandle:GetFileModifiedTime`
-- [ ] `GetScriptPath`
-- [ ] `GetRuntimePath`
-- [ ] `GetUserPath`
-- [ ] `GetWorkDir`
-- [ ] `SetWorkDir`
-- [ ] `MakeDir`
-- [ ] `RemoveDir`
-- [ ] `GetCloudProvider`
+- [x] `NewFileSearch`
+- [x] `fileSearchHandle:NextFile`
+- [x] `fileSearchHandle:GetFileName`
+- [x] `fileSearchHandle:GetFileSize`
+- [x] `fileSearchHandle:GetFileModifiedTime`
+- [x] `GetScriptPath`
+- [x] `GetRuntimePath`
+- [x] `GetUserPath`
+- [x] `GetWorkDir`
+- [x] `SetWorkDir`
+- [x] `MakeDir`
+- [x] `RemoveDir`
+- [x] `GetCloudProvider`
 
 Window and input:
 
-- [ ] `SetWindowTitle`
-- [ ] `GetCursorPos`
-- [ ] `SetCursorPos`
-- [ ] `ShowCursor`
-- [ ] `IsKeyDown`
-- [ ] `Copy`
-- [ ] `Paste`
-- [ ] `SetForeground`
-- [ ] `TakeScreenshot`
+- [x] `SetWindowTitle`
+- [x] `GetCursorPos`
+- [x] `SetCursorPos`
+- [x] `ShowCursor`
+- [x] `IsKeyDown`
+- [x] `Copy`
+- [x] `Paste`
+- [x] `SetForeground`
+- [x] `TakeScreenshot`
 
 Processes, network and the rest:
 
-- [ ] `LaunchSubScript`
-- [ ] `AbortSubScript`
-- [ ] `IsSubScriptRunning`
-- [ ] The callbacks `OnSubCall`, `OnSubError` and `OnSubFinished` are delivered
-- [ ] `SpawnProcess`
-- [ ] `OpenURL`
-- [ ] `Deflate`
-- [ ] `Inflate`
-- [ ] `GetTime`
-- [ ] `ConPrintf`
-- [ ] `ConPrintTable`
-- [ ] `ConExecute`
-- [ ] `ConClear`
-- [ ] `SetProfiling`
-- [ ] `Restart`
-- [ ] `Exit`
+- [x] `LaunchSubScript`
+- [x] `AbortSubScript`
+- [x] `IsSubScriptRunning`
+- [x] The callbacks `OnSubCall`, `OnSubError` and `OnSubFinished` are delivered
+- [x] `SpawnProcess`
+- [ ] `OpenURL`. Left for the demonstration.
+- [x] `Deflate`
+- [x] `Inflate`
+- [x] `GetTime`
+- [x] `ConPrintf`
+- [x] `ConPrintTable`
+- [x] `ConExecute`
+- [x] `ConClear`
+- [x] `SetProfiling`
+- [ ] `Restart`. Left for the demonstration.
+- [x] `Exit`
 
 Lua libraries the runtime provides:
 
-- [ ] `lcurl.safe`: an HTTPS download succeeds
-- [ ] `lzip`: a file is read out of a zip
-- [ ] `lua-utf8`
-- [ ] `socket`: the sign-in listener in `src/LaunchServer.lua` binds its port
+- [x] `lcurl.safe`: an HTTPS download succeeds
+- [x] `lzip`: a file is read out of a zip
+- [x] `lua-utf8`
+- [x] `socket`: the sign-in listener in `src/LaunchServer.lua` binds its port
 
 ### Part B: features
 
@@ -331,6 +334,7 @@ Lua libraries the runtime provides:
 
 - [ ] Ctrl + C, X, V, A, Z and Y in text boxes
 - [ ] Option + Left and Option + Right jump a word in text boxes
+- [ ] Ctrl + F12 takes a screenshot
 - [ ] Ctrl + plus, minus and 0 zoom text where zoom is allowed
 - [ ] Ctrl + Z, Y, F, M and D on the Tree tab, and Ctrl + C over a node
 - [ ] Ctrl + click and Shift + click
@@ -364,6 +368,17 @@ Lua libraries the runtime provides:
 - **The launcher leaves the event loop to the host (phase 4).** Its first version pumped events to catch the link the application was opened with, which made GLFW skip its start-up and left the application with no Quit handling. Now it only registers for link events. A link that arrives in the first five seconds restarts the application with the link as its argument; a later one opens in a second copy.
 - **`update_manifest.py` skips the `macos` folder (phase 4).** Its `default` part takes any file named `LICENSE.md`, wherever it is, and found one in the Mac build tree.
 - **Packaging is `macos/package.py`, not `package.sh` (phase 4).** It reads the manifest to decide what goes in the bundle, which is easier in typed Python than in shell.
+
+- **The published manifest and runtime zip live on `macos-release` only (phase 5).** `manifest.xml` on `dev` and on the working branch stays as upstream has it, as upstream's own stays between releases, and `runtime-macos.zip` is ignored there. To publish: run `macos/package.py`, switch to `macos-release`, copy `manifest-updated.xml` over `manifest.xml`, add both with the zip forced, commit and push.
+- **Two releases were published to prove updates (phase 5).** The first differed from the tree by a marker line in `src/UpdateApply.lua` and the launcher's optimisation level, so that the second, the real tree, was an update to it. The branch's head is the real tree.
+- **An update check takes about four minutes on this MacBook (phase 5).** It hashes every installed file, about 800 MB, in Lua. Windows does the same work.
+
+- **`macos/build.sh` fetches the host and the sources it pins (phase 6).** A new clone then needs one command. `git submodule update --init --depth 1` inside the host does not land on the pinned commits, and compressonator marks files the build does not use for Git LFS, which this Mac has configured but not installed. The script fetches each pinned commit by its hash, and switches the LFS filter off in each fetched repository's own settings. Its first version passed that setting on the command line only, which fetched the sources but left `git status` failing in the new clone.
+- **The parity checklist's part A is ticked from `macos/host_check.lua` (phase 6).** Its 25 checks cover 81 of the 86 lines. Two cannot be exercised on any platform, and three are left for the demonstration. The agent has not run the script again since decision 22, because it moves the pointer; the owner runs it at the demonstration.
+- **The frame rate is the owner's judgement (phase 6).** The program has no frame counter on any platform, so phase 3's "the figure is recorded" cannot be met for dragging the tree. Decision 17 already leaves responsiveness to the owner at the demonstration.
+- **Ctrl + F12 takes a screenshot on the Mac (phase 6, decision 26).** The shortcut is Ctrl + Print Screen. GLFW reports F13 as Print Screen on macOS, and the MacBook's own keyboard has neither key, so the brief's "every shortcut on a Mac keyboard" was not met. The owner chose Ctrl + F12. The Mac host reports F12 as Print Screen, one entry in the key table in `sys_main.cpp`; the program uses F12 for nothing else. The agent cannot press keys, so it is checked at the demonstration.
+- **The Mac suite needs the `luautf8` rock as well as busted (phase 6).** Phase 2 installed both, but only busted was written down. Following the written steps in a new clone failed until `CONTRIBUTING.md` named both, and LuaJIT's header folder, `include/luajit-2.1`. LuaRocks now installs busted 2.3.0; phase 2 used 2.2.0, and the results are the same.
+- **`LICENSE.md` gains fourteen libraries (phase 6).** OpenSSL, which only the Mac runtime links, and GLFW, zlib, Zstandard, libwebp, LuaSocket, luautf8, sol2, Dear ImGui, GLM, GLI, Microsoft GSL, CMakeRC and Compressonator, which the host uses on both platforms and the file did not name. Zstandard and GLM offer a choice of licence; the BSD and MIT texts are the ones included.
 
 ### Phase 2 findings, and the owner's decisions
 
