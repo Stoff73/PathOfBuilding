@@ -71,9 +71,9 @@ With a test build open:
 
 ## 7. A screenshot
 
-- [ ] Take a screenshot. The picture appears in `~/Documents/Path of Building/Screenshots/`.
+- [ ] Press Ctrl + F12 (with Fn held too, if the top row is set to its media keys). A picture of the window appears in `~/Documents/Path of Building/Screenshots/`.
 
-The shortcut is Ctrl + Print Screen. A MacBook's own keyboard has no such key; on an external Mac keyboard it is F13. This is open: see the question in `docs/STATUS.md`.
+Windows uses Ctrl + Print Screen. A MacBook's own keyboard has no such key, so on the Mac F12 stands in for it (decision 26). F13 on an external Mac keyboard works as well.
 
 ## 8. Dev Mode and errors
 

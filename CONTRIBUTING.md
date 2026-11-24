@@ -144,7 +144,7 @@ You need Xcode's command line tools (`xcode-select --install`), CMake and Ninja 
 
    `spec/System/TestTreeTab_spec.lua` has a check that never finishes, on every platform.
 
-Shortcuts use `Ctrl`, as on Windows, except that `Option` + `Left` and `Option` + `Right` jump a word in a text box. A change to the host is committed in `macos/SimpleGraphic`, on its branch `macos`, and guarded so that it only affects macOS. Most of the host's files have Windows line endings, which an edit must keep.
+Shortcuts use `Ctrl`, as on Windows, with two exceptions: `Option` + `Left` and `Option` + `Right` jump a word in a text box, and `Ctrl` + `F12` takes a screenshot, as a MacBook's keyboard has no Print Screen key. A change to the host is committed in `macos/SimpleGraphic`, on its branch `macos`, and guarded so that it only affects macOS. Most of the host's files have Windows line endings, which an edit must keep.
 
 ## Keeping your fork up to date
 

@@ -70,7 +70,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/SimpleGraphic/engine/common/`, `engine/render/` | 1 | Portability fixes so the host compiles on macOS |
 | `macos/SimpleGraphic/engine/system/win/sys_video.cpp` | 1, 3 | Chooses the ANGLE backend on macOS; cursor position, display scale and scrolling behave as on Windows |
 | `macos/SimpleGraphic/engine/system/win/sys_macos.mm` | 3 | The macOS system calls: start a process, find the cursor, find Documents, name a cloud provider, show a message window |
-| `macos/SimpleGraphic/engine/system/win/sys_main.cpp` | 3 | Calls those on macOS where it now has a "not implemented" stub; reports Ctrl as held for Option + Left and Option + Right |
+| `macos/SimpleGraphic/engine/system/win/sys_main.cpp` | 3, 6 | Calls those on macOS where it now has a "not implemented" stub; reports Ctrl as held for Option + Left and Option + Right, and F12 as Print Screen |
 | `macos/SimpleGraphic/engine/system/win/sys_console_unix.cpp` | 3 | Shows startup and fatal messages on screen on macOS |
 | `macos/SimpleGraphic/ui_api.cpp` | 3 | `GetCloudProvider` answers on macOS |
 | `macos/SimpleGraphic/engine/render/r_main.cpp` | 3 | Saves screenshots to `~/Documents/Path of Building/Screenshots/` on macOS |
@@ -89,6 +89,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `runtime-macos.zip` | 5 | The Mac runtime the updater downloads |
 | `docs/DECISIONS.md` | Plan | The decisions above |
 | `docs/CODE_STANDARDS.md` | 1, 6 | Gains the `macos/` boundary and the rules for its C++ and shell |
+| `docs/macos-demonstration.md` | 6 | The owner's checklist for the demonstration |
 | `docs/STATUS.md` | Every | What's built, how to run it on a Mac, and the log |
 | `CONTRIBUTING.md` | 6 | How to build and run on a Mac |
 | `RELEASE.md` | 6 | How to publish a release and a Mac runtime on the fork |
@@ -333,6 +334,7 @@ Lua libraries the runtime provides:
 
 - [ ] Ctrl + C, X, V, A, Z and Y in text boxes
 - [ ] Option + Left and Option + Right jump a word in text boxes
+- [ ] Ctrl + F12 takes a screenshot
 - [ ] Ctrl + plus, minus and 0 zoom text where zoom is allowed
 - [ ] Ctrl + Z, Y, F, M and D on the Tree tab, and Ctrl + C over a node
 - [ ] Ctrl + click and Shift + click
@@ -374,7 +376,7 @@ Lua libraries the runtime provides:
 - **`macos/build.sh` fetches the host and the sources it pins (phase 6).** A new clone then needs one command. `git submodule update --init --depth 1` inside the host does not land on the pinned commits, and compressonator marks files the build does not use for Git LFS, which this Mac has configured but not installed. The script fetches each pinned commit by its hash, and switches the LFS filter off in each fetched repository's own settings. Its first version passed that setting on the command line only, which fetched the sources but left `git status` failing in the new clone.
 - **The parity checklist's part A is ticked from `macos/host_check.lua` (phase 6).** Its 25 checks cover 81 of the 86 lines. Two cannot be exercised on any platform, and three are left for the demonstration. The agent has not run the script again since decision 22, because it moves the pointer; the owner runs it at the demonstration.
 - **The frame rate is the owner's judgement (phase 6).** The program has no frame counter on any platform, so phase 3's "the figure is recorded" cannot be met for dragging the tree. Decision 17 already leaves responsiveness to the owner at the demonstration.
-- **Screenshots cannot be taken on the MacBook's own keyboard (phase 6). Open, with the owner.** The shortcut is Ctrl + Print Screen. GLFW reports F13 as Print Screen on macOS, and the built-in keyboard has neither key. The brief asks that every shortcut can be performed on a Mac keyboard, so this needs the owner's decision on which key takes a screenshot on the Mac, as decision 13 did for word jumps.
+- **Ctrl + F12 takes a screenshot on the Mac (phase 6, decision 26).** The shortcut is Ctrl + Print Screen. GLFW reports F13 as Print Screen on macOS, and the MacBook's own keyboard has neither key, so the brief's "every shortcut on a Mac keyboard" was not met. The owner chose Ctrl + F12. The Mac host reports F12 as Print Screen, one entry in the key table in `sys_main.cpp`; the program uses F12 for nothing else. The agent cannot press keys, so it is checked at the demonstration.
 - **The Mac suite needs the `luautf8` rock as well as busted (phase 6).** Phase 2 installed both, but only busted was written down. Following the written steps in a new clone failed until `CONTRIBUTING.md` named both, and LuaJIT's header folder, `include/luajit-2.1`. LuaRocks now installs busted 2.3.0; phase 2 used 2.2.0, and the results are the same.
 - **`LICENSE.md` gains fourteen libraries (phase 6).** OpenSSL, which only the Mac runtime links, and GLFW, zlib, Zstandard, libwebp, LuaSocket, luautf8, sol2, Dear ImGui, GLM, GLI, Microsoft GSL, CMakeRC and Compressonator, which the host uses on both platforms and the file did not name. Zstandard and GLM offer a choice of licence; the BSD and MIT texts are the ones included.
 
