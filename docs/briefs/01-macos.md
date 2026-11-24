@@ -32,8 +32,8 @@ The owner works on an Intel MacBook running macOS 15 and wants to use the whole 
 ## What done looks like
 
 - A demonstration the owner watches on this MacBook: start the application from Finder, open a build, use each tab, import a character, create and import a share code, run a trade search, take a screenshot, and check for updates.
-- The whole busted suite passes on this MacBook under the Mac runtime's LuaJIT, and still passes in the CI image.
-- The builds in `spec/TestBuilds` produce their stored output on the Mac.
+- The busted suite passes on this MacBook under the Mac runtime's LuaJIT, and still passes in the CI image, with the same number of checks on each. `spec/System/TestTreeTab_spec.lua` is excepted until upstream fixes it: one of its checks never finishes on any platform. (Changed by the owner on 2026-11-24.)
+- The builds in `spec/TestBuilds` produce the same calculated outputs on the Mac as in the CI image, and the mod cache regenerates identically on both. The stored outputs date from 2022 and no longer match the code anywhere. (Changed by the owner on 2026-11-24.)
 - A parity checklist in the plan, with one line for every host function in `src/_SimpleGraphic.def.lua` and every feature in item 2, each ticked after being exercised on the Mac.
 - An update published on the fork is found, downloaded and applied by the Mac application, and builds and settings are intact afterwards.
 - A build saved on each platform opens on the other.

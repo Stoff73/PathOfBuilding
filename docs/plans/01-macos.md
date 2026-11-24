@@ -74,6 +74,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/SimpleGraphic/engine/system/win/sys_console_unix.cpp` | 3 | Shows startup and fatal messages on screen on macOS |
 | `macos/SimpleGraphic/ui_api.cpp` | 3 | `GetCloudProvider` answers on macOS |
 | `macos/SimpleGraphic/engine/render/r_main.cpp` | 3 | Saves screenshots to `~/Documents/Path of Building/Screenshots/` on macOS |
+| `macos/dump_build_outputs.lua` | 2 | Prints every calculated output of the test builds, to compare two platforms |
 | `macos/host_check.lua` | 3 | Calls every host function that needs no person and reports pass or fail |
 | `macos/Info.plist` | 4 | The bundle's name, version, icon and the `pob` link scheme |
 | `macos/PathOfBuilding.icns` | 4 | The application icon, converted from upstream's |
@@ -125,10 +126,12 @@ Runs the existing specs on the Mac under LuaJIT built from the runtime's source.
 
 Why second: it is cheap, and it proves the Mac's LuaJIT calculates as the CI image's does before any work is spent on the interface.
 
-- [ ] `busted --lua=<the built luajit>` passes on this MacBook, with the same number of specs as the CI image runs.
-- [ ] The specs tagged `builds` pass: every build in `spec/TestBuilds` produces its stored output.
-- [ ] Regenerating the mod cache on the Mac, with the command in `docs/CODE_STANDARDS.md` rule 10, leaves `git diff --exit-code src/Data/ModCache.lua` clean.
-- [ ] `docker-compose up` still passes.
+The owner changed three of these criteria on 2026-11-24, after the findings recorded under "Decisions made while building": the reference is the CI image at the same commit, and `spec/System/TestTreeTab_spec.lua` is excepted until upstream fixes it.
+
+- [x] busted passes on this MacBook under the built LuaJIT, with the same number of checks as the CI image: 909 pass and none fail on each, run with `--exclude-pattern=TestTreeTab`.
+- [x] Every calculated output of every build in `spec/TestBuilds` is the same on the Mac as in the CI image. `macos/dump_build_outputs.lua` printed 4,398 outputs for the five builds on each, at 17 significant digits, and the two lists are identical. This replaces comparing against the stored outputs, which date from 2022.
+- [x] The mod cache regenerated on the Mac is byte-identical to the one regenerated in the CI image (4,113,289 bytes). This replaces a clean `git diff`, which neither gives because the committed cache lacks 24 entries.
+- [x] The suite still passes in the CI image: the same 909 checks, with the same exception.
 
 ## Phase 3: The host behaves as on Windows
 
@@ -342,13 +345,13 @@ Lua libraries the runtime provides:
 - **The LuaJIT patch calls `getenv` directly off Windows (phase 1).** Its non-Windows branch copied the result without checking for an unset variable, which crashed `os.getenv`.
 - **The build renames ANGLE's libraries to `libEGL.dylib` and `libGLESv2.dylib` and re-signs them (phase 1).** GLFW opens ANGLE by those names; the vcpkg recipe produces `liblibEGL_angle.dylib` and `liblibGLESv2_angle.dylib`.
 
-### Phase 2 findings, waiting for the owner
+### Phase 2 findings, and the owner's decisions
 
-Phase 2 is measured but not ticked off, because three of its criteria rest on assumptions about the repository that turned out to be wrong. None of the three is caused by the Mac work. Each is checked against the CI image at the same commit instead.
+Three of phase 2's criteria rested on assumptions about the repository that turned out to be wrong. On 2026-11-24 the owner decided that `TestTreeTab_spec.lua` is an accepted exception until upstream fixes it, that "the same numbers" is judged by the Mac equalling the CI image, and that the reference files stay as upstream has them. The findings: None of the three is caused by the Mac work. Each is checked against the CI image at the same commit instead.
 
 - **The suite.** On the Mac, under LuaJIT built from the runtime's source, 909 checks pass and none fail. The CI image gives the same 909 and none failing. Both exclude `spec/System/TestTreeTab_spec.lua`, whose check "Copies multiple times with unique IDs" never finishes: it deep-compares two whole passive specs. It hung on the Mac in every attempt and in the CI image, and upstream's own CI runs of this code either finish in under three minutes or are cancelled at six hours. The spec came from upstream on 2026-11-22. So "the whole suite passes" cannot be shown on either platform until that spec is fixed.
 - **The mod cache.** Regenerating it on the Mac adds 24 entries for newly added support gems and changes nothing else, so `git diff --exit-code` is not clean. The CI image regenerates a byte-identical file (4,113,289 bytes). The committed cache is behind the data; the Mac and the CI image agree exactly.
-- **The stored test builds.** The outputs in `spec/TestBuilds` were last generated in 2022, and nothing in CI runs them. Against today's code 900 of 2,164 values differ on the Mac, as they would anywhere. The meaningful check is to generate the outputs on the Mac and in the CI image at the same commit and compare. The CI image's were generated; the Mac's were not, because the system stopped that run when memory ran low.
+- **The stored test builds.** The outputs in `spec/TestBuilds` were last generated in 2022, and nothing in CI runs them. Against today's code 900 of 2,164 values differ on the Mac, as they would anywhere. The meaningful check is to generate the outputs on the Mac and in the CI image at the same commit and compare. The repository's generator, `spec/GenerateBuilds.lua`, turned out not to finish on either platform and leaves half-written files, so `macos/dump_build_outputs.lua` was written to do the comparison: 4,398 outputs, identical.
 - **The documented headless command.** `LUA_PATH='../runtime/lua/?.lua;../runtime/lua/?/init.lua'` no longer finds `Data.PearlSupports`, in the CI image as on the Mac. Adding `./?.lua;./?/init.lua` fixes it, and `docs/CODE_STANDARDS.md` rule 10 now says so.
 
 ## Not in this build
