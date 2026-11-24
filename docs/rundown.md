@@ -151,6 +151,8 @@
     Project overview
 * **runtime-win32.zip**
     Contains PoB executable, update executable, compiled libraries `libcurl` (HTTPS requests), `lcurl` (libcurl bindings for Lua), `lua51` (LuaJIT 5.1), `lzip` (DEFLATE), `SimpleGraphic` (custom 2D graphics host), Lua libraries for Base64, JSON, SHA-1, XML, and fonts.
+* **runtime-macos.zip**
+    The Mac runtime, as the Mac updater downloads it. Written by `macos/package.py` and committed on the `macos-release` branch only.
 * **tree-2_6.zip**
 * **tree-3_6.zip**
 * **tree-3_7.zip**
@@ -165,4 +167,29 @@
 * **UpdateApply.lua**
     Consumes and applies table of update instructions. Updating the runtime itself is done from a separate host environment.
 * **UpdateCheck.lua**
-    Compares local and remote manifests to determine which files need to be updated, downloads these files and `changelog.txt`, rebuilds `manifest.xml` and builds table of update instructions.
+    Compares local and remote manifests to determine which files need to be updated, downloads these files and `changelog.txt`, rebuilds `manifest.xml` and builds table of update instructions. Takes the sources for the platform it runs on, skips files marked for another platform's runtime, and refuses a release that has no runtime for its platform.
+
+## macOS
+
+The Mac runtime is built from source on a Mac; `CONTRIBUTING.md` has the steps and `RELEASE.md` how a release is published. Everything Mac-specific is in `macos/`:
+
+* **SimpleGraphic**
+    Our fork of the graphics host, as a git submodule. Its macOS changes are on the branch `macos`, each guarded so that the Windows build is unchanged. The system calls are in `engine/system/win/sys_macos.mm`.
+* **build.sh**
+    Fetches the sources the host pins, builds the host, LuaJIT and the Lua libraries `lcurl`, `lzip`, `lua-utf8` and `socket` with vcpkg, compiles the launcher and the update helper, and stages the runtime in `macos/runtime/`.
+* **triplets/x64-osx-pob.cmake**
+    The vcpkg triplet: shared libraries, release only.
+* **launcher.mm**
+    The launcher, `Path of Building`. Finds `Launch.lua`, loads the host library and runs it, and passes a `pob://` link on as the first argument.
+* **updater.cpp**
+    The update helper, `Update`. Waits for the application to exit, carries out the operations file that `UpdateCheck.lua` wrote, and starts the application again.
+* **package.py**
+    Assembles `macos/build/Path of Building.app` from the staged runtime, `src/` and the manifest: `Contents/MacOS` is the runtime folder and `Contents/Resources` the script folder. Also writes `runtime-macos.zip` and `manifest-updated.xml`.
+* **Info.plist**, **PathOfBuilding.icns**
+    The bundle's name, version, `pob` link scheme and icon.
+* **host_check.lua**, **host_check_system.lua**, **host_check_card.lua**
+    Call every host function that needs no person and report pass or fail, and draw a test card. Run with `"macos/runtime/Path of Building" macos/host_check.lua`.
+* **dump_build_outputs.lua**
+    Prints every calculated output of the builds in `spec/TestBuilds`, to compare two platforms.
+
+The packaged application keeps builds and settings in `~/Documents/Path of Building/` and screenshots in its `Screenshots` folder. It draws through ANGLE's OpenGL backend.

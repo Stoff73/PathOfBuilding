@@ -33,7 +33,7 @@ What the next agent needs to know that the code does not say:
 - Headless, from the command line: `cd src && LUA_PATH='../runtime/lua/?.lua;../runtime/lua/?/init.lua;./?.lua;./?/init.lua' luajit HeadlessWrapper.lua < /dev/null`. Without the last two path entries it fails to find `Data.PearlSupports`; on an error it waits for a key press, hence `< /dev/null`.
 - The tests: `docker-compose up` from the root, or `busted --lua=luajit` with LuaJIT and busted installed.
 - On this machine the specs run two ways: in the CI image with Docker, and natively with `macos/build/rocks/bin/busted`, which is busted 2.2.0 installed by LuaRocks for the LuaJIT in `macos/build/host/vcpkg_installed/x64-osx-pob/tools/luajit/`. Both give 909 passing checks and no failures when `spec/System/TestTreeTab_spec.lua` is excluded; that file has a check that never finishes, on both, as it does in upstream's CI. Add `--exclude-pattern=TestTreeTab` until it is fixed.
-- On a Mac: `macos/build.sh` builds the runtime into `macos/runtime/`, then `"macos/runtime/Path of Building"` starts the program in Dev Mode. `python3 macos/package.py` then assembles `macos/build/Path of Building.app`, which runs in installed mode and keeps builds and settings in `~/Documents/Path of Building/`. Until a release is published to the fork's `macos-release` branch it reports "Update check failed" at start, which is harmless. It needs Xcode's command line tools, CMake and Ninja. The first build compiles the dependencies and takes about an hour on this MacBook; later builds restore them from vcpkg's cache and take about three minutes. The staged runtime is 27 MB, the build folder 66 MB and the host checkout with vcpkg 425 MB.
+- On a Mac: `macos/build.sh` builds the runtime into `macos/runtime/`, then `"macos/runtime/Path of Building"` starts the program in Dev Mode. `python3 macos/package.py` then assembles `macos/build/Path of Building.app`, which runs in installed mode and keeps builds and settings in `~/Documents/Path of Building/`. Until a release is published to the fork's `macos-release` branch it reports "Update check failed" at start, which is harmless. It needs Xcode's command line tools, CMake and Ninja; `CONTRIBUTING.md` has the steps, including installing busted. `macos/build.sh` fetches the host's pinned sources itself. The first build compiles the dependencies and takes about an hour on this MacBook; later builds restore them from vcpkg's cache and take about three minutes. The staged runtime is 27 MB, the build folder 66 MB and the host checkout with vcpkg 425 MB.
 
 ## What's built
 
@@ -50,7 +50,7 @@ What the next agent needs to know that the code does not say:
 | `spec/` | The busted specs in `spec/System`, and saved test builds in `spec/TestBuilds` |
 | `tests/` | The test for `fix_ascendancy_positions.py` |
 | `runtime/` | The Windows host binaries and vendored Lua libraries |
-| `macos/` | The Mac launcher, the build script and its vcpkg triplet, and `macos/SimpleGraphic`, our fork of the host as a submodule with its macOS changes on the local branch `macos` |
+| `macos/` | The Mac launcher and update helper, the build and packaging scripts, the vcpkg triplet, the host checks, and `macos/SimpleGraphic`, our fork of the host as a submodule with its macOS changes on the local branch `macos`. `docs/rundown.md` lists the files |
 | `docs/` | The docs: process templates, this file, the standards and the upstream tutorials |
 | `.github/` | CI: tests, the ModCache check, the spell check and the release workflows |
 
@@ -62,7 +62,7 @@ None. This is a desktop application with no HTTP API.
 
 ## Not built yet
 
-- macOS support still to do in `docs/plans/01-macos.md`: publishing a release to the fork and proving an update end to end (phase 5), the docs and a clean rebuild (phase 6), and the owner's demonstration, which now carries every check that needs a person at the keyboard and trackpad.
+- macOS support still to do in `docs/plans/01-macos.md`: the owner's demonstration, `docs/macos-demonstration.md`, which carries every check that needs a person at the keyboard and trackpad, and a key for screenshots on the MacBook's own keyboard, which waits on the owner's decision.
 - The pre-commit hook and the 200-line file check that the plan template and the standards refer to.
 
 ## Log

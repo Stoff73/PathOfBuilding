@@ -11,7 +11,7 @@ For Path of Building Community: Lua 5.1 on LuaJIT, run inside the SimpleGraphic 
    - Run the tests with `docker-compose up`, which uses the CI image, or with `busted --lua=luajit`. Add `-p TestName_spec.lua` for one file. Every spec passes before a phase is ticked off.
    - Format as `.editorconfig` says: tabs in Lua. Match the file you are in, and never reformat or rename lines the change doesn't need.
    - CI spell-checks every changed file with cspell. Game terms it doesn't know go in its dictionary, not around it.
-   - The Python scripts in the root are release tooling: Python 3.10 or later, standard library only, fully type-hinted.
+   - The Python scripts in the root, and `macos/package.py`, are release tooling: Python 3.10 or later, standard library only, fully type-hinted.
    - The C++ in `macos/` is C++17 and compiles without warnings under `-Wall -Wextra`. Its shell scripts are bash and start with `set -euo pipefail`.
 6. Types and names:
    - Lua has no static types, so new shared functions and classes carry EmmyLua annotations: `---@param`, `---@return`, `---@class`.
@@ -28,7 +28,7 @@ For Path of Building Community: Lua 5.1 on LuaJIT, run inside the SimpleGraphic 
 11. IMPORTANT: every change to a number the program shows is proven by a spec. A change to `src/Modules/Calc*.lua`, the parser or mod data comes with a spec in `spec/System` that fails before the change and passes after it.
 12. Builds saved by an earlier version keep loading. A change to what a build file holds also reads the old form.
 13. Modifiers are written in the syntax of `docs/modSyntax.md` and parsed as `docs/addingMods.md` describes. Skills follow `docs/addingSkills.md`.
-14. `manifest.xml`, `CHANGELOG.md` and `changelog.txt` are written by the release process in `RELEASE.md`. A feature change leaves them alone.
+14. `manifest.xml`, `CHANGELOG.md` and `changelog.txt` are written by the release process in `RELEASE.md`. A feature change leaves them alone. The manifest with the `macos` entries, and `runtime-macos.zip`, are committed on the branch `macos-release` only; on every other branch `manifest.xml` stays as upstream has it.
 
 ## Organising the code
 
@@ -43,6 +43,6 @@ For Path of Building Community: Lua 5.1 on LuaJIT, run inside the SimpleGraphic 
    - `src/Export/`: the only place that reads the game's files.
    - `src/HeadlessWrapper.lua`: stands in for the graphics host so the program runs from the command line and under test. `src/_SimpleGraphic.def.lua` defines the host's API.
    - `runtime/`: the Windows host binaries and the vendored Lua libraries. Features don't edit it.
-   - `macos/`: everything Mac-specific that we write: the launcher, the update helper, and the build and packaging scripts. `macos/SimpleGraphic` is our fork of the host, as a submodule; a change there is guarded so that it only affects macOS. `macos/build/` and `macos/runtime/` are build output and are not committed.
+   - `macos/`: everything Mac-specific that we write: the launcher, the update helper, and the build and packaging scripts. `macos/SimpleGraphic` is our fork of the host, as a submodule; a change there is guarded so that it only affects macOS. `macos/build/` and `macos/runtime/` are build output and are not committed. The host's files keep the line endings they have, which for most is CRLF: an edit that rewrites them makes every line a change and the fork unmergeable.
    - `spec/System/`: the busted specs. `spec/TestBuilds/`: saved builds whose output is compared as a whole.
 18. Tests mirror the code: `spec/System/Test<Name>_spec.lua` tests `<Name>`. A spec starts from `newBuild()` and drives the real build objects, not copies of their logic.

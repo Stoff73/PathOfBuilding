@@ -196,112 +196,114 @@ One line per host function and per feature, ticked once it has been exercised on
 
 ### Part A: host functions
 
+Ticked lines were exercised by `macos/host_check.lua` in phase 3: 25 checks passed on the external display at scale 1 and on the built-in display at scale 2. The owner runs it once more at the demonstration.
+
 Callbacks and loading:
 
-- [ ] `SetCallback`
-- [ ] `GetCallback`
-- [ ] `SetMainObject`
-- [ ] The callbacks `OnInit`, `OnFrame`, `OnKeyDown`, `OnKeyUp`, `OnChar`, `CanExit` and `OnExit` are delivered
-- [ ] `LoadModule`
-- [ ] `PLoadModule`
-- [ ] `PCall`
+- [x] `SetCallback`
+- [x] `GetCallback`
+- [x] `SetMainObject`
+- [ ] The callbacks `OnInit`, `OnFrame`, `OnKeyDown`, `OnKeyUp`, `OnChar`, `CanExit` and `OnExit` are delivered. `OnInit`, `OnFrame` and `OnExit` are exercised by `host_check.lua`; the key callbacks and `CanExit` are left for the demonstration.
+- [x] `LoadModule`
+- [x] `PLoadModule`
+- [x] `PCall`
 
 Images and textures:
 
-- [ ] `NewImageHandle`
-- [ ] `imageHandle:Load`
-- [ ] `imageHandle:LoadArtRectangle`
-- [ ] `imageHandle:LoadArtArcBand`
-- [ ] `imageHandle:Unload`
-- [ ] `imageHandle:IsValid`
-- [ ] `imageHandle:IsLoading`
-- [ ] `imageHandle:SetLoadingPriority`
-- [ ] `imageHandle:ImageSize`
-- [ ] `NewArtHandle`
-- [ ] `artHandle:Size`
-- [ ] `Texture.new`
-- [ ] `texHandle:Allocate`
-- [ ] `texHandle:Load`
-- [ ] `texHandle:Save`
-- [ ] `texHandle:Info`
-- [ ] `texHandle:IsValid`
-- [ ] `texHandle:StackTextures`
-- [ ] `GetAsyncCount`
+- [x] `NewImageHandle`
+- [x] `imageHandle:Load`
+- [ ] `imageHandle:LoadArtRectangle`. Cannot be exercised on any platform: see "Decisions made while building".
+- [x] `imageHandle:LoadArtArcBand`
+- [x] `imageHandle:Unload`
+- [x] `imageHandle:IsValid`
+- [x] `imageHandle:IsLoading`
+- [x] `imageHandle:SetLoadingPriority`
+- [x] `imageHandle:ImageSize`
+- [x] `NewArtHandle`
+- [x] `artHandle:Size`
+- [x] `Texture.new`
+- [x] `texHandle:Allocate`
+- [x] `texHandle:Load`
+- [x] `texHandle:Save`
+- [x] `texHandle:Info`
+- [x] `texHandle:IsValid`
+- [x] `texHandle:StackTextures`
+- [x] `GetAsyncCount`
 
 Drawing:
 
-- [ ] `RenderInit`
-- [ ] `GetScreenSize`
-- [ ] `GetScreenScale`
-- [ ] `SetClearColor`
-- [ ] `SetDrawLayer`
-- [ ] `GetDrawLayer`
-- [ ] `SetViewport`
-- [ ] `SetBlendMode`
-- [ ] `SetDrawColor`, both forms
-- [ ] `GetDrawColor`
-- [ ] `SetDPIScaleOverridePercent`
-- [ ] `GetDPIScaleOverridePercent`
-- [ ] `DrawImage`, all three forms
-- [ ] `DrawImageQuad`, all three forms
-- [ ] `DrawString`
-- [ ] `DrawStringWidth`
-- [ ] `DrawStringCursorIndex`
-- [ ] `StripEscapes`
+- [x] `RenderInit`
+- [x] `GetScreenSize`
+- [x] `GetScreenScale`
+- [x] `SetClearColor`
+- [x] `SetDrawLayer`
+- [x] `GetDrawLayer`
+- [x] `SetViewport`
+- [ ] `SetBlendMode`. Cannot be exercised on any platform: see "Decisions made while building".
+- [x] `SetDrawColor`, both forms
+- [x] `GetDrawColor`
+- [x] `SetDPIScaleOverridePercent`
+- [x] `GetDPIScaleOverridePercent`
+- [x] `DrawImage`, all three forms
+- [x] `DrawImageQuad`, all three forms
+- [x] `DrawString`
+- [x] `DrawStringWidth`
+- [x] `DrawStringCursorIndex`
+- [x] `StripEscapes`
 
 Files and folders:
 
-- [ ] `NewFileSearch`
-- [ ] `fileSearchHandle:NextFile`
-- [ ] `fileSearchHandle:GetFileName`
-- [ ] `fileSearchHandle:GetFileSize`
-- [ ] `fileSearchHandle:GetFileModifiedTime`
-- [ ] `GetScriptPath`
-- [ ] `GetRuntimePath`
-- [ ] `GetUserPath`
-- [ ] `GetWorkDir`
-- [ ] `SetWorkDir`
-- [ ] `MakeDir`
-- [ ] `RemoveDir`
-- [ ] `GetCloudProvider`
+- [x] `NewFileSearch`
+- [x] `fileSearchHandle:NextFile`
+- [x] `fileSearchHandle:GetFileName`
+- [x] `fileSearchHandle:GetFileSize`
+- [x] `fileSearchHandle:GetFileModifiedTime`
+- [x] `GetScriptPath`
+- [x] `GetRuntimePath`
+- [x] `GetUserPath`
+- [x] `GetWorkDir`
+- [x] `SetWorkDir`
+- [x] `MakeDir`
+- [x] `RemoveDir`
+- [x] `GetCloudProvider`
 
 Window and input:
 
-- [ ] `SetWindowTitle`
-- [ ] `GetCursorPos`
-- [ ] `SetCursorPos`
-- [ ] `ShowCursor`
-- [ ] `IsKeyDown`
-- [ ] `Copy`
-- [ ] `Paste`
-- [ ] `SetForeground`
-- [ ] `TakeScreenshot`
+- [x] `SetWindowTitle`
+- [x] `GetCursorPos`
+- [x] `SetCursorPos`
+- [x] `ShowCursor`
+- [x] `IsKeyDown`
+- [x] `Copy`
+- [x] `Paste`
+- [x] `SetForeground`
+- [x] `TakeScreenshot`
 
 Processes, network and the rest:
 
-- [ ] `LaunchSubScript`
-- [ ] `AbortSubScript`
-- [ ] `IsSubScriptRunning`
-- [ ] The callbacks `OnSubCall`, `OnSubError` and `OnSubFinished` are delivered
-- [ ] `SpawnProcess`
-- [ ] `OpenURL`
-- [ ] `Deflate`
-- [ ] `Inflate`
-- [ ] `GetTime`
-- [ ] `ConPrintf`
-- [ ] `ConPrintTable`
-- [ ] `ConExecute`
-- [ ] `ConClear`
-- [ ] `SetProfiling`
-- [ ] `Restart`
-- [ ] `Exit`
+- [x] `LaunchSubScript`
+- [x] `AbortSubScript`
+- [x] `IsSubScriptRunning`
+- [x] The callbacks `OnSubCall`, `OnSubError` and `OnSubFinished` are delivered
+- [x] `SpawnProcess`
+- [ ] `OpenURL`. Left for the demonstration.
+- [x] `Deflate`
+- [x] `Inflate`
+- [x] `GetTime`
+- [x] `ConPrintf`
+- [x] `ConPrintTable`
+- [x] `ConExecute`
+- [x] `ConClear`
+- [x] `SetProfiling`
+- [ ] `Restart`. Left for the demonstration.
+- [x] `Exit`
 
 Lua libraries the runtime provides:
 
-- [ ] `lcurl.safe`: an HTTPS download succeeds
-- [ ] `lzip`: a file is read out of a zip
-- [ ] `lua-utf8`
-- [ ] `socket`: the sign-in listener in `src/LaunchServer.lua` binds its port
+- [x] `lcurl.safe`: an HTTPS download succeeds
+- [x] `lzip`: a file is read out of a zip
+- [x] `lua-utf8`
+- [x] `socket`: the sign-in listener in `src/LaunchServer.lua` binds its port
 
 ### Part B: features
 
@@ -368,6 +370,12 @@ Lua libraries the runtime provides:
 - **The published manifest and runtime zip live on `macos-release` only (phase 5).** `manifest.xml` on `dev` and on the working branch stays as upstream has it, as upstream's own stays between releases, and `runtime-macos.zip` is ignored there. To publish: run `macos/package.py`, switch to `macos-release`, copy `manifest-updated.xml` over `manifest.xml`, add both with the zip forced, commit and push.
 - **Two releases were published to prove updates (phase 5).** The first differed from the tree by a marker line in `src/UpdateApply.lua` and the launcher's optimisation level, so that the second, the real tree, was an update to it. The branch's head is the real tree.
 - **An update check takes about four minutes on this MacBook (phase 5).** It hashes every installed file, about 800 MB, in Lua. Windows does the same work.
+
+- **`macos/build.sh` fetches the host and the sources it pins (phase 6).** A new clone then needs one command. `git submodule update --init --depth 1` inside the host does not land on the pinned commits, and compressonator marks files the build does not use for Git LFS, which this Mac has configured but not installed. The script fetches each pinned commit by its hash, with the LFS filter off.
+- **The parity checklist's part A is ticked from `macos/host_check.lua` (phase 6).** Its 25 checks cover 81 of the 86 lines. Two cannot be exercised on any platform, and three are left for the demonstration. The agent has not run the script again since decision 22, because it moves the pointer; the owner runs it at the demonstration.
+- **The frame rate is the owner's judgement (phase 6).** The program has no frame counter on any platform, so phase 3's "the figure is recorded" cannot be met for dragging the tree. Decision 17 already leaves responsiveness to the owner at the demonstration.
+- **Screenshots cannot be taken on the MacBook's own keyboard (phase 6). Open, with the owner.** The shortcut is Ctrl + Print Screen. GLFW reports F13 as Print Screen on macOS, and the built-in keyboard has neither key. The brief asks that every shortcut can be performed on a Mac keyboard, so this needs the owner's decision on which key takes a screenshot on the Mac, as decision 13 did for word jumps.
+- **`LICENSE.md` gains fourteen libraries (phase 6).** OpenSSL, which only the Mac runtime links, and GLFW, zlib, Zstandard, libwebp, LuaSocket, luautf8, sol2, Dear ImGui, GLM, GLI, Microsoft GSL, CMakeRC and Compressonator, which the host uses on both platforms and the file did not name. Zstandard and GLM offer a choice of licence; the BSD and MIT texts are the ones included.
 
 ### Phase 2 findings, and the owner's decisions
 
