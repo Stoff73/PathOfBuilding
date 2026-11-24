@@ -49,3 +49,5 @@ runtime/SimpleGraphic/Screenshots
 macos/build/
 macos/runtime/
 *.app/
+# Written by macos/package.py, and committed only on the macos-release branch
+runtime-macos.zip

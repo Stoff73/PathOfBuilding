@@ -47,6 +47,7 @@ def write_runtime_zip(zip_path: pathlib.Path) -> None:
 def write_manifest() -> Et.Element:
     """Regenerate the manifest for this tree and return it."""
     sys.path.insert(0, str(REPO))
+    sys.dont_write_bytecode = True
     import update_manifest
 
     os.chdir(REPO)
