@@ -76,6 +76,8 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/SimpleGraphic/engine/render/r_main.cpp` | 3 | Saves screenshots to `~/Documents/Path of Building/Screenshots/` on macOS |
 | `macos/dump_build_outputs.lua` | 2 | Prints every calculated output of the test builds, to compare two platforms |
 | `macos/host_check.lua` | 3 | Calls every host function that needs no person and reports pass or fail |
+| `macos/host_check_system.lua`, `macos/host_check_card.lua` | 3 | The system checks and the drawn test card, split out of `host_check.lua` to keep each file to one job |
+| `macos/SimpleGraphic/libs/LZip/lzip.cpp` | 3 | Zip header fields are 32 bits on every platform |
 | `macos/Info.plist` | 4 | The bundle's name, version, icon and the `pob` link scheme |
 | `macos/PathOfBuilding.icns` | 4 | The application icon, converted from upstream's |
 | `macos/package.sh` | 4, 5 | Assembles `Path of Building.app` from the staged runtime, `src/` and the manifest; in phase 5 also writes `runtime-macos.zip` |
@@ -139,7 +141,7 @@ Fills in every host function that is a stub or behaves differently on macOS: sta
 
 Why third: the application's features sit on these functions, so they are proven one by one before the features are.
 
-- [ ] `macos/host_check.lua`, run through the launcher, reports a pass for every function in part A of the parity checklist that it can call without a person.
+- [x] `macos/host_check.lua`, run through the launcher, reports a pass for every function in part A of the parity checklist that it can call without a person. 25 checks pass and none fail, on the external display at scale 1 and on the built-in display at scale 2, and the test card it draws is correct on both.
 - [ ] Every other line in part A is ticked after being exercised by hand, with a note of how.
 - [ ] On the built-in Retina display the cursor lands on what it points at, in a window and in full screen: clicking a passive node allocates that node.
 - [ ] Two-finger scrolling moves a list at a rate comparable to a mouse wheel, and zooms the tree a step at a time.
@@ -344,6 +346,14 @@ Lua libraries the runtime provides:
 - **Text is culled against the framebuffer's height, not the window's (phase 1).** `r_font.cpp` skipped any line of text below the window's height in screen points while positions are in pixels, so on a Retina display the lower half of the window had no text. The two heights are equal on Windows, so nothing changes there.
 - **The LuaJIT patch calls `getenv` directly off Windows (phase 1).** Its non-Windows branch copied the result without checking for an unset variable, which crashed `os.getenv`.
 - **The build renames ANGLE's libraries to `libEGL.dylib` and `libGLESv2.dylib` and re-signs them (phase 1).** GLFW opens ANGLE by those names; the vcpkg recipe produces `liblibEGL_angle.dylib` and `liblibGLESv2_angle.dylib`.
+
+- **The Windows host is the same commit (phase 3).** `runtime/SimpleGraphic.dll` reports `v2.5-421d188`, the commit the Mac host is built from, so differences found on the Mac are differences of platform, not of version.
+- **ANGLE's layer follows the window's display scale (phase 3).** ANGLE gives its drawing layer the display's scale once. On a display with another scale the picture was a quarter of the window. `PlatformSyncLayerScale` in `sys_macos.mm` sets it whenever the scale changes. Found by running on the external display, which is scale 1 where the built-in one is scale 2.
+- **Three host faults that only showed on the Mac (phase 3).** `lzip` read zip headers with `unsigned long` fields, 64 bits off Windows, so no zip opened. The file search threw when a match was a folder. The non-Windows fatal error message dropped its text. All three are fixed; the first two would have broken timeless jewel data, updates and folders in the build list.
+- **The host build ignores any system Lua (phase 3).** sol2 includes `<lua/lua.hpp>` if one exists, and Homebrew's Lua, installed with LuaRocks, provides one. The build now offers LuaJIT's headers under that name first.
+- **The launcher passes an absolute script path (phase 3).** The host reads a relative one as relative to the runtime folder.
+- **Two entries in the parity checklist cannot be exercised, on any platform (phase 3).** `SetBlendMode` is declared in `src/_SimpleGraphic.def.lua` but is in neither the Windows binary nor the host source, and no Lua calls it. `imageHandle:LoadArtRectangle` copies each row once per pixel of width and overruns its buffer; the code is the same on Windows, and no Lua calls it either. Both are left as they are.
+- **The window reopens where it was last (phase 3).** The host saves the window's position in `SimpleGraphic/SimpleGraphic.cfg` in the runtime folder, as on Windows, so "opens on the display the pointer is on" applies to a first run only.
 
 ### Phase 2 findings, and the owner's decisions
 
