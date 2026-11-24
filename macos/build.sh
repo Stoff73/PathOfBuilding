@@ -31,7 +31,8 @@ cmake --build "$build"
 rm -rf "$stage"
 mkdir -p "$stage/SimpleGraphic"
 cp "$build/libSimpleGraphic.dylib" "$build"/{lcurl,lzip,lua-utf8,socket}.so "$stage/"
-clang++ -std=c++17 -O2 -o "$stage/Path of Building" "$here/launcher.cpp"
+clang++ -std=c++17 -O2 -Wall -Wextra -framework Cocoa -o "$stage/Path of Building" "$here/launcher.mm"
+clang++ -std=c++17 -O2 -Wall -Wextra -o "$stage/Update" "$here/updater.cpp"
 
 # Copy each library the binaries name, and each library those name, beside them.
 copy_libraries() {

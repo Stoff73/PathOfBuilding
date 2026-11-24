@@ -7,9 +7,14 @@ import logging
 import pathlib
 import re
 import xml.etree.ElementTree as Et
+import zipfile
 from typing import Any, Callable
 
 alphanumeric_pattern = re.compile(r"(\d+)")
+
+# The macOS build is published by the fork. Its runtime is one zip, which the updater unpacks.
+macos_base_url = "https://raw.githubusercontent.com/Stoff73/PathOfBuilding/{branch}/"
+macos_runtime_zip = "runtime-macos.zip"
 
 
 def _exclude_file(file_patterns: set[str], path: pathlib.Path) -> bool:
@@ -43,6 +48,38 @@ def _alphanumeric(key: str) -> list[int | str]:
         int(character) if character.isdigit() else character.lower()
         for character in re.split(alphanumeric_pattern, key)
     ]
+
+
+def _sha1(data: bytes) -> str:
+    """Hash a file's contents, with the line endings of text files normalised."""
+    # Normalize line endings for non-binary files in case they were accidentally mixed
+    if b"\0" not in data:
+        data = re.sub(rb"\r\n?|\n", b"\r\n", data)
+    return hashlib.sha1(data).hexdigest()
+
+
+def _macos_runtime_files(zip_path: pathlib.Path, files: list[dict[str, str]]) -> list[dict[str, str]] | None:
+    """List the files of the macOS runtime that the Windows runtime does not share.
+
+    :return: The entries, or None if a shared file in the zip is out of date.
+    """
+    shared = {
+        attributes["name"]: attributes["sha1"]
+        for attributes in files
+        if attributes["part"] == "runtime" and "runtime" not in attributes
+    }
+    entries: list[dict[str, str]] = []
+    with zipfile.ZipFile(zip_path) as archive:
+        for name in sorted(archive.namelist(), key=_alphanumeric):
+            if name.endswith("/"):
+                continue
+            sha1 = _sha1(archive.read(name))
+            if name not in shared:
+                entries.append({"name": name, "part": "runtime", "platform": "macos", "sha1": sha1})
+            elif shared[name] != sha1:
+                logging.critical(f"'{name}' in {zip_path.name} differs from the runtime folder; rebuild the zip")
+                return None
+    return entries
 
 
 def create_manifest(version: str | None = None, replace: bool = False) -> None:
@@ -84,6 +121,14 @@ def create_manifest(version: str | None = None, replace: bool = False) -> None:
             else {"part": part, "url": url_with_trailing_slash}
         )
         parts.append(attributes)
+    macos_parts = [
+        {
+            "part": part,
+            "platform": "macos",
+            "url": macos_base_url + (macos_runtime_zip if part == "runtime" else (config[part]["path"] + "/").lstrip("/")),
+        }
+        for part in config.sections()
+    ]
 
     files: list[dict[str, str]] = []
     for section in config.sections():
@@ -93,6 +138,9 @@ def create_manifest(version: str | None = None, replace: bool = False) -> None:
         exclude_dirs = _parse_list_option(config, section, "exclude-directories")
         source = pathlib.Path(config[section]["path"])
         for path in source.glob("**/*.*"):
+            # The macOS sources and build tree are not shipped, and hold licence files of their own
+            if path.parts[0] == "macos":
+                continue
             if include_files and not _exclude_file(include_files, path):
                 continue
             if include_dirs and not _exclude_directory(include_dirs, path):
@@ -101,11 +149,7 @@ def create_manifest(version: str | None = None, replace: bool = False) -> None:
                 continue
             if exclude_dirs and _exclude_directory(exclude_dirs, path):
                 continue
-            data = path.read_bytes()
-            # Normalize line endings for non-binary files in case they were accidentally mixed
-            if b"\0" not in data:
-                data = re.sub(rb"\r\n?|\n", b"\r\n", data)
-            sha1 = hashlib.sha1(data).hexdigest()
+            sha1 = _sha1(path.read_bytes())
             name = path.relative_to(config[section]["path"]).as_posix()
             attributes = (
                 {"name": name, "part": section, "runtime": "win32", "sha1": sha1}
@@ -116,11 +160,18 @@ def create_manifest(version: str | None = None, replace: bool = False) -> None:
 
     files.sort(key=lambda attr: (attr["part"], _alphanumeric(attr["name"])))
 
+    macos_files: list[dict[str, str]] = []
+    if (base_path / macos_runtime_zip).exists():
+        entries = _macos_runtime_files(base_path / macos_runtime_zip, files)
+        if entries is None:
+            return
+        macos_files = entries
+
     root = Et.Element("PoBVersion")
     Et.SubElement(root, "Version", number=new_version)
-    for attributes in parts:
+    for attributes in parts + macos_parts:
         Et.SubElement(root, "Source", attributes)
-    for attributes in files:
+    for attributes in files + macos_files:
         Et.SubElement(root, "File", attributes)
     file_name = "manifest.xml" if replace else "manifest-updated.xml"
     tree = Et.ElementTree(root)

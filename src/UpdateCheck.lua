@@ -109,7 +109,8 @@ if localManXML and localManXML[1].elem == "PoBVersion" then
 				localPlatform = node.attrib.platform
 				localBranch = node.attrib.branch
 			elseif node.elem == "Source" then
-				if node.attrib.part == "default" then
+				-- A source for this platform wins over one for any platform
+				if node.attrib.part == "default" and (node.attrib.platform == localPlatform or (not node.attrib.platform and not localSource)) then
 					localSource = node.attrib.url
 				end
 			elseif node.elem == "File" then
@@ -155,7 +156,8 @@ if remoteManXML and remoteManXML[1].elem == "PoBVersion" then
 				end
 				remoteSources[node.attrib.part][node.attrib.platform or "any"] = node.attrib.url
 			elseif node.elem == "File" then
-				if not node.attrib.platform or node.attrib.platform == localPlatform then
+				-- Windows runtime files are marked runtime="win32" rather than with a platform
+				if (not node.attrib.platform or node.attrib.platform == localPlatform) and (not node.attrib.runtime or node.attrib.runtime == localPlatform) then
 					local fullPath
 					if node.attrib.part == "runtime" then
 						fullPath = runtimePath .. "/" .. node.attrib.name
@@ -171,6 +173,11 @@ end
 if not remoteVer or not next(remoteSources) or not next(remoteFiles) then
 	ConPrintf("Update check failed: invalid remote manifest")
 	return nil, "Invalid remote manifest"
+end
+-- A release that doesn't know this platform would remove its runtime
+if not remoteSources["runtime"] or not (remoteSources["runtime"][localPlatform] or remoteSources["runtime"]["any"]) then
+	ConPrintf("Update check failed: no runtime for platform '%s' in remote manifest", localPlatform)
+	return nil, "The latest release doesn't include a build for this platform."
 end
 
 -- Build lists of files to be updated or deleted

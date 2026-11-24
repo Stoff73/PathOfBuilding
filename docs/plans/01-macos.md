@@ -62,7 +62,7 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `.gitmodules` | 1 | Pins the host fork at `macos/SimpleGraphic` |
 | `.gitignore` | 1 | Ignores `macos/build/`, `macos/runtime/` and the built `.app` |
 | `macos/build.sh` | 1 | Builds the host, the four Lua libraries, LuaJIT, the launcher and the helper into `macos/build/`, and stages the runtime in `macos/runtime/` |
-| `macos/launcher.cpp` | 1, 4 | The Mac launcher |
+| `macos/launcher.mm` | 1, 4 | The Mac launcher |
 | `macos/SimpleGraphic/CMakeLists.txt` | 1 | Builds on macOS: the Unix socket source for luasocket, library names and install rules that work off Windows |
 | `macos/triplets/x64-osx-pob.cmake` | 1 | The vcpkg triplet: shared libraries, release only |
 | `macos/SimpleGraphic/cmake/FindLuaJIT.cmake` | 1 | Finds LuaJIT under its macOS file names |
@@ -80,11 +80,11 @@ Paths under `macos/SimpleGraphic/` are in the host fork.
 | `macos/SimpleGraphic/libs/LZip/lzip.cpp` | 3 | Zip header fields are 32 bits on every platform |
 | `macos/Info.plist` | 4 | The bundle's name, version, icon and the `pob` link scheme |
 | `macos/PathOfBuilding.icns` | 4 | The application icon, converted from upstream's |
-| `macos/package.sh` | 4, 5 | Assembles `Path of Building.app` from the staged runtime, `src/` and the manifest; in phase 5 also writes `runtime-macos.zip` |
-| `macos/updater.cpp` | 5 | The update helper |
-| `src/UpdateCheck.lua` | 5 | The two changes under Approach |
-| `spec/System/TestUpdateCheck_spec.lua` | 5 | Runs `UpdateCheck.lua` against fixture manifests with the network stubbed |
-| `update_manifest.py` | 5 | Also writes the `macos` sources and the Mac runtime's files |
+| `macos/package.py` | 4 | Assembles `Path of Building.app` from the staged runtime, `src/` and the manifest, and writes `runtime-macos.zip` and `manifest-updated.xml` |
+| `macos/updater.cpp` | 4 | The update helper |
+| `src/UpdateCheck.lua` | 4 | The two changes under Approach, and the refusal of a release without this platform |
+| `spec/System/TestUpdateCheck_spec.lua` | 4 | Runs `UpdateCheck.lua` against fixture manifests with the network stubbed |
+| `update_manifest.py` | 4 | Also writes the `macos` sources and the Mac runtime's files |
 | `manifest.xml` | 5 | Regenerated: gains `macos` lines only |
 | `runtime-macos.zip` | 5 | The Mac runtime the updater downloads |
 | `docs/DECISIONS.md` | Plan | The decisions above |
@@ -157,13 +157,13 @@ Writes `macos/package.sh`, `macos/Info.plist` and the icon, and finishes the lau
 
 Why fourth: the bundle changes where files are found and where data is saved, so features are proven in the form the owner will use.
 
-- [ ] `macos/package.sh` produces `Path of Building.app`, and `open` starts it in installed mode: not Dev Mode, with the version number shown.
-- [ ] Builds and settings are written to `~/Documents/Path of Building/`, screenshots to its `Screenshots` folder, and nothing is written inside the bundle except by the updater.
-- [ ] Every line in part B of the parity checklist is ticked. Lines that need the owner's Path of Exile account are ticked at the demonstration and marked so.
-- [ ] Opening a `pob://` link in the browser starts the application and imports that build.
-- [ ] A build from `spec/TestBuilds`, saved on Windows, opens in the application with its stored output.
-- [ ] A build saved by the application loads in the CI image with the same output as on the Mac.
-- [ ] `find "Path of Building.app" -name '*.dll' -o -name '*.exe'` prints nothing.
+- [x] `macos/package.py` produces `Path of Building.app`, and `open` starts it in installed mode: not Dev Mode, with the version number shown. (The plan first named this script `package.sh`.)
+- [x] Builds and settings are written to `~/Documents/Path of Building/`, screenshots to its `Screenshots` folder, and nothing is written inside the bundle except by the updater and the host's own settings files, `SimpleGraphic/SimpleGraphic.cfg` and `imgui.ini`, which Windows keeps in the runtime folder too. Checked by quitting the application normally: `Settings.xml` was rewritten in Documents.
+- [ ] Every line in part B of the parity checklist is ticked. Lines that need the owner's Path of Exile account are ticked at the demonstration and marked so. Left for the demonstration, as the features need a person at the keyboard.
+- [ ] Opening a `pob://` link in the browser starts the application and imports that build. Established: with the application closed, a link starts it with the link as its first argument, and it requests that build from the site; with it running, a link opens in a second copy. Importing a real build is left for the demonstration.
+- [x] A build from `spec/TestBuilds`, saved on Windows, opens in the application with its stored output. `OccVortex` opened in the packaged application from the Builds folder with the figures the CI image gives. "Stored output" here means the CI image's, as decided in phase 2.
+- [x] A build saved by the application loads in the CI image with the same output as on the Mac. The five test builds, saved by the program's save code under the Mac's LuaJIT, give 4,398 identical outputs in the CI image. Saving from the window itself is left for the demonstration.
+- [x] `find "Path of Building.app" -name '*.dll' -o -name '*.exe'` prints nothing.
 
 ## Phase 5: Updates from the fork
 
@@ -171,7 +171,7 @@ Writes the update helper, makes the two changes to `src/UpdateCheck.lua` with th
 
 Why fifth: an update can only be tested against a finished application, and it needs pushes to the fork, which the owner approves one at a time.
 
-- [ ] `spec/System/TestUpdateCheck_spec.lua` passes on the Mac and in the CI image. It shows that a `win32` install selects exactly the files it selected before the change, and that a `macos` install never selects a file marked `runtime="win32"`.
+- [ ] `spec/System/TestUpdateCheck_spec.lua` passes on the Mac and in the CI image. It shows that a `win32` install selects exactly the files it selected before the change, and that a `macos` install never selects a file marked `runtime="win32"`. Passes on the Mac, three checks, and fails against the unchanged `UpdateCheck.lua`; not yet run in the CI image.
 - [ ] `git diff origin/dev -- manifest.xml` shows added lines only, each carrying `platform="macos"`.
 - [ ] A program update works end to end: the application built from one commit finds, downloads and applies a later commit published on the fork's `master`, restarts, and shows the new version.
 - [ ] A runtime update works end to end: with a changed host library published, the application exits, the helper applies the update and starts it again, the new host version is reported, and the launcher is still executable.
@@ -356,6 +356,14 @@ Lua libraries the runtime provides:
 - **The launcher passes an absolute script path (phase 3).** The host reads a relative one as relative to the runtime folder.
 - **Two entries in the parity checklist cannot be exercised, on any platform (phase 3).** `SetBlendMode` is declared in `src/_SimpleGraphic.def.lua` but is in neither the Windows binary nor the host source, and no Lua calls it. `imageHandle:LoadArtRectangle` copies each row once per pixel of width and overruns its buffer; the code is the same on Windows, and no Lua calls it either. Both are left as they are.
 - **The window reopens where it was last (phase 3).** The host saves the window's position in `SimpleGraphic/SimpleGraphic.cfg` in the runtime folder, as on Windows, so "opens on the display the pointer is on" applies to a first run only.
+
+- **The update code was built with phase 4 (phases 4 and 5).** A packaged application checks for updates as it starts, so the changes to `UpdateCheck.lua`, their spec, `update_manifest.py` and the update helper had to exist before the bundle could be run safely. Phase 5 keeps what needs publishing.
+- **The Mac application follows the fork's `macos-release` branch, not `master` (phase 4). This changes decision 12.** GitHub answers a request for a branch the fork lacks with upstream's branch of that name. The first packaged run was therefore offered upstream's Windows release, which would have replaced the Mac's Lua with older files and deleted the Mac runtime had it been applied. A branch name upstream does not have cannot be answered that way.
+- **`UpdateCheck.lua` refuses a release with no runtime for its platform (phase 4).** A third change to that file, for the same reason. It cannot affect Windows, whose runtime source every manifest has. The spec covers it.
+- **The update helper carries out the operations itself (phase 4). This changes decision 7.** It reads the operations file and does the three operations `UpdateApply.lua` does, without Lua, so it links nothing but system libraries. Linking LuaJIT in would have needed a second, static build of it.
+- **The launcher leaves the event loop to the host (phase 4).** Its first version pumped events to catch the link the application was opened with, which made GLFW skip its start-up and left the application with no Quit handling. Now it only registers for link events. A link that arrives in the first five seconds restarts the application with the link as its argument; a later one opens in a second copy.
+- **`update_manifest.py` skips the `macos` folder (phase 4).** Its `default` part takes any file named `LICENSE.md`, wherever it is, and found one in the Mac build tree.
+- **Packaging is `macos/package.py`, not `package.sh` (phase 4).** It reads the manifest to decide what goes in the bundle, which is easier in typed Python than in shell.
 
 ### Phase 2 findings, and the owner's decisions
 
